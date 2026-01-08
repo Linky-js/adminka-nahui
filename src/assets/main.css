@@ -1,0 +1,17 @@
+@import './base.css';
+
+*::-webkit-scrollbar {
+    width: 2px;
+}
+*::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+*::-webkit-scrollbar-thumb {
+    background: #d4d0d0;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+* {
+    transition: all 0.3s ease;
+}
