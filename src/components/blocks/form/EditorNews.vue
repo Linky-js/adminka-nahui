@@ -9,6 +9,8 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import axios from "axios";
 
+import { useAppStore } from "@/stores/useAppStore";
+
 const props = defineProps({
   modelValue: { type: String, default: "" },
   label: { type: String, default: "Контент" },
@@ -16,7 +18,7 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const store = useStore();
+const store = useAppStore();
 const user = store.state.user;
 const apiUrl = store.state.apiUrl;
 const apiDomain = store.state.apiDomain;

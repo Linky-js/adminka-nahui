@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { entityConfigs } from '@/configs/entityConfigs'
 
 const STORAGE_KEY = 'app_settings'
 
@@ -53,14 +52,14 @@ export const useAppStore = defineStore('app', {
           if (parsed.apiUrl) this.apiUrl = parsed.apiUrl
           if (parsed.apiDomain) this.apiDomain = parsed.apiDomain
           if (parsed.entities) this.entities = parsed.entities
-          else this.entities = entityConfigs || {}
+          else this.entities = {}
         } else {
-          // fallback to default configs shipped with app
-          this.entities = entityConfigs || {}
+          // fallback to empty configs
+          this.entities = {}
         }
       } catch (e) {
         console.error('Failed to load settings from localStorage', e)
-        this.entities = entityConfigs || {}
+        this.entities = {}
       }
     },
   },

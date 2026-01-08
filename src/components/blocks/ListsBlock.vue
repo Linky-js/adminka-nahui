@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/useAppStore'
+import { useApi } from '@/composables/useApi'
 
 const props = defineProps({
   propsPage: String,
@@ -12,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['goToCategory'])
 const router = useRouter()
 const store = useAppStore()
+const { getEntityList, deleteEntity } = useApi()
 
 const searchQuery = ref('')
 const sortBy = ref('idDesc')
@@ -128,21 +130,8 @@ function editCategory(category) {
 
 async function deleteCategory(id) {
   if (confirm('Вы уверены, что хотите удалить этот элемент?')) {
-    let authGet = `&auth=${user.username}:${user.auth_key}`
-    let params = { id }
     try {
-      let link = ''
-      if (props.propsPage.includes('1category')) {
-        link = props.propsPage.slice(0, -9) + '-category'
-      } else {
-        link = props.propsPage
-        if (props.propsPage.includes('1banner')) {
-          link = props.propsPage.slice(0, -7) + '-banner'
-        }
-      }
-      await axios.post(apiUrl + 'api-' + link + '/del' + authGet, params, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      await deleteEntity(props.propsPage, id)
       getContent()
     } catch (error) {
       console.error('Ошибка при удалении категории:', error)
@@ -152,29 +141,12 @@ async function deleteCategory(id) {
   }
 }
 
-function getContent() {
-  const cat = props.propsPage.includes('1category')
-  const authGet = `&auth=${user.username}:${user.auth_key}`
-  if (
-    props.propsPage === 'theme' ||
-    props.propsPage === 'object' ||
-    props.propsPage === 'blogger' ||
-    props.propsPage === 'video1banner' ||
-    cat
-  ) {
-    let link = ''
-    if (cat) link = props.propsPage.slice(0, -9) + '-category'
-    else {
-      link = props.propsPage
-      if (props.propsPage.includes('1banner')) link = props.propsPage.slice(0, -7) + '-banner'
-    }
-    axios.get(apiUrl + 'api-' + link + '/get-list' + authGet).then((response) => {
-      categories.value = response.data
-    })
-  } else {
-    axios.get(apiUrl + 'api-' + props.propsPage + '/get-admin-list' + authGet).then((response) => {
-      categories.value = response.data
-    })
+async function getContent() {
+  try {
+    const data = await getEntityList(props.propsPage)
+    categories.value = data
+  } catch (error) {
+    console.error('Ошибка при загрузке данных:', error)
   }
 }
 

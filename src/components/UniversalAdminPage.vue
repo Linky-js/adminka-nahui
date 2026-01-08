@@ -2,10 +2,11 @@
 import { reactive, computed, defineProps, ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from "axios";
-import { entityConfigs } from '@/configs/entityConfigs';
 import { useAppStore } from '@/stores/useAppStore'
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { useApi } from '@/composables/useApi'
+import { useFileUpload } from '@/composables/useFileUpload'
 
 // Компоненты форм
 import Editor from '@/components/blocks/form/EditorNews.vue';
@@ -42,13 +43,35 @@ const regionsRaw = ref([]);
 const store = useAppStore()
 const user = store.user
 const apiUrl = store.apiUrl
+const { get, post, upload, getEntityById, saveEntity: apiSaveEntity, listEntityConfigs } = useApi()
+const { uploadFile } = useFileUpload()
+
+// entity configs from JSON
+const entityConfigs = ref({})
+
+// load entity configs from JSON
+async function loadEntityConfigs() {
+  try {
+    const configs = await listEntityConfigs()
+    entityConfigs.value = configs || {}
+  } catch (error) {
+    console.error('Error loading entity configs:', error)
+    // fallback to fetch
+    try {
+      const response = await fetch('/entityConfig.json')
+      entityConfigs.value = await response.json()
+    } catch (fallbackError) {
+      console.error('Fallback error:', fallbackError)
+    }
+  }
+}
 
 // computed
 const config = computed(() => {
   const val = store.entities ? store.entities[props.entity] : undefined
   if (Array.isArray(val)) return val
   if (val && typeof val === 'object' && Array.isArray(val.fields)) return val.fields
-  return entityConfigs[props.entity] || []
+  return entityConfigs.value[props.entity] || []
 })
 
 // form data
@@ -103,20 +126,16 @@ function resolveValueFromSource(data, srcKey) {
 async function loadInitialData() {
   if (props.initialData && typeof props.initialData === 'object' && props.initialData.id && Object.keys(props.initialData).length === 1) {
     // Если initialData имеет только id, загрузим полные данные
-    const authGet = `&auth=${user.username}:${user.auth_key}`;
-    let endpoint = `${apiUrl}api-${props.entity}/get-admin-list${authGet}&id=${props.initialData.id}`;
     try {
-      const response = await axios.get(endpoint);
-      if (response.data && response.data[props.entity] && response.data[props.entity].length > 0) {
-        // Предполагаем, что API возвращает объект в массиве
-        const fullData = response.data[props.entity][0];
-        // Обновим initialData, но поскольку это prop, лучше напрямую использовать в initForm
-        // Или сделать reactive initialData
-        // Для простоты, вызовем initForm с fullData
+      const fullData = await getEntityById(props.entity, props.initialData.id);
+      if (fullData) {
         initFormWithData(fullData);
+      } else {
+        initForm();
       }
     } catch (error) {
       console.error('Error loading initial data:', error);
+      initForm();
     }
   } else {
     initForm();
@@ -161,6 +180,7 @@ function initForm() {
 onMounted(async () => {
   console.log('props.', props.entity);
 
+  await loadEntityConfigs()
   await loadInitialData();
   getDynamicOptions();
 });
@@ -213,9 +233,8 @@ async function getDynamicOptions() {
 
 async function getThemes() {
   try {
-    const authGet = `&auth=${user.username}:${user.auth_key}`;
-    const response = await axios.get(`${apiUrl}api-theme/get-list${authGet}`);
-    const themes = response.data.themes || [];
+    const data = await get('api-theme/get-list');
+    const themes = data.themes || [];
 
     fieldOptions.theme = themes.map(t => ({
       value: t.id,
@@ -232,13 +251,11 @@ async function getThemes() {
 
 async function getCategories() {
   try {
-    const authGet = `&auth=${user.username}:${user.auth_key}`;
     // endpoint формируем по шаблону: api-${entity}-category/get-list
     let link = props.entity.includes('1banner') ? props.entity.slice(0, -7) : props.entity;
-    const endpoint = `${apiUrl}api-${link}-category/get-list${authGet}`;
-    const response = await axios.get(endpoint);
+    const data = await get(`api-${link}-category/get-list`);
     // backend у тебя возвращал либо response.data.categories, либо response.data.object_categories
-    const cats = response.data.categories || response.data.object_categories || [];
+    const cats = data.categories || data.object_categories || [];
     categoriesRaw.value = cats;
 
     // Преобразуем в массив {value,label}
@@ -278,9 +295,8 @@ async function getCategories() {
 
 async function getRegions() {
   try {
-    const authGet = `&auth=${user.username}:${user.auth_key}`;
-    const response = await axios.get(`${apiUrl}api-object-region/get-list${authGet}`);
-    const regs = response.data.object_regions || [];
+    const data = await get('api-object-region/get-list');
+    const regs = data.object_regions || [];
     regionsRaw.value = regs;
 
     const options = regs.map(r => ({ value: r.id, label: r.name || r.title || r.region_name || r.name_ru }));
@@ -307,57 +323,6 @@ function getFieldProps(field) {
   }
   // остальные просто прокидываем
   return p;
-}
-
-// ---------------------- SAVE ENTITY ----------------------
-async function uploadFile(input, type) {
-  if (!input) return null;
-
-  let file = null;
-
-  if (input instanceof File) {
-    file = input;
-  } else if (typeof input === "object" && input.file instanceof File) {
-    file = input.file;
-  } else if (input.target?.files?.[0]) {
-    file = input.target.files[0];
-  }
-
-  if (!file) {
-    console.warn("uploadFile: не нашли файл для загрузки", input);
-    return null;
-  }
-
-  // const validFileTypes = {
-  //   image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
-  //   document: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
-  //   // добавьте другие типы файлов здесь
-  // };
-
-  // if (!validFileTypes[type].includes(file.type)) {
-  //   alert(`Можно загружать только ${type} файлы.`);
-  //   return null;
-  // }
-
-  const fd = new FormData();
-  fd.append("UploadForm[file]", file);
-  fd.append("folder", type === "image" ? "images/img" : "documents");
-  fd.append("filenamePrefix", type === "image" ? "img_" : "doc_");
-
-  const authGet = `&auth=${user.username}:${user.auth_key}`;
-
-  try {
-    const res = await axios.post(apiUrl + "upload" + authGet, fd, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    const d = res.data;
-    if (!d) return null;
-    return d.path || d.url || d.file || d; // универсально
-  } catch (err) {
-    console.error("Ошибка uploadFile:", err);
-    throw err;
-  }
 }
 
 // buildParamsFromConfig
@@ -434,23 +399,8 @@ async function buildParamsFromConfig(config, formDataLocal) {
 
 
 async function saveEntity() {
-  const authGet = `&auth=${user.username}:${user.auth_key}`;
   const isUpdate = !!props.initialData?.id;
-  let link = '';
-  console.log('formdata', formData);
-
-  // определяем endpoint
-  if (props.entity.includes('1category')) {
-    link = props.entity.slice(0, -9) + '-category';
-  } else {
-    link = props.entity;
-    if (props.entity.includes('1banner')) {
-      link = props.entity.slice(0, -7) + '-banner';
-    }
-  }
-
-  const endpoint = `api-${link}/${isUpdate ? 'update' : 'set'}`;
-  const configCurrent = entityConfigs[props.entity] || [];
+  const configCurrent = entityConfigs.value[props.entity] || [];
 
   try {
     // --- 1. собираем параметры
@@ -460,9 +410,7 @@ async function saveEntity() {
     if (isUpdate) params.id = props.initialData.id;
 
     // --- 2. сохраняем сам объект
-    const { data } = await axios.post(apiUrl + endpoint + authGet, params, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const data = await apiSaveEntity(props.entity, params, isUpdate);
 
     if (data.status === 'false') {
       toast.error(data.error || 'Ошибка при сохранении', { autoClose: 1500 });
@@ -502,9 +450,7 @@ async function saveEntity() {
           ? 'api-object-img/update'
           : 'api-object-img/set';
 
-        await axios.post(apiUrl + imgEndpoint + authGet, imgParams, {
-          headers: { 'Content-Type': 'application/json' },
-        });
+        await post(imgEndpoint, imgParams);
       }
     }
 
