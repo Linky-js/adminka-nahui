@@ -3,8 +3,26 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/admin',
-    name: 'Admin',
+    name: 'AdminHome',
     component: () => import('../pages/AdminPage.vue'),
+  },
+  {
+    path: '/admin/:entity',
+    name: 'AdminEntityList',
+    component: () => import('../pages/EntityListPage.vue'),
+    props: true,
+  },
+  {
+    path: '/admin/:entity/create',
+    name: 'AdminEntityCreate',
+    component: () => import('../pages/EntityCreatePage.vue'),
+    props: true,
+  },
+  {
+    path: '/admin/:entity/:id/edit',
+    name: 'AdminEntityEdit',
+    component: () => import('../pages/EntityEditPage.vue'),
+    props: true,
   },
   {
     path: '/nelzya-tuda',

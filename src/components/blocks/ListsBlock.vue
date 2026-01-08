@@ -119,12 +119,11 @@ function sortByNameDesc() {
 }
 
 function goToCategory(item, type) {
-  item.type = type
-  emit('goToCategory', item)
+  router.push(`/admin/${props.propsPage}/${item.id}/edit`)
 }
 
 function editCategory(category) {
-  router.push({ name: 'EditCategory', params: { id: category.id } })
+  router.push(`/admin/${props.propsPage}/${category.id}/edit`)
 }
 
 async function deleteCategory(id) {
@@ -180,7 +179,7 @@ function getContent() {
 }
 
 function addCategory() {
-  emit('goToCategory')
+  router.push(`/admin/${props.propsPage}/create`)
 }
 
 onMounted(() => {

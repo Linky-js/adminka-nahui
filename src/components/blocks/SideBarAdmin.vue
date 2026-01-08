@@ -1,22 +1,29 @@
 <script setup>
 import gsap from 'gsap'
 import { ref, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/useAppStore'
 
+const router = useRouter()
+const route = useRoute()
 const store = useAppStore()
 const user = store.user
 const apiUrl = store.apiUrl
 const apiDomain = store.apiDomain
 
-const emit = defineEmits(['goTo'])
+// const emit = defineEmits(['goTo'])
 
+// Собираем меню из сущностей в сторе
+// Берём все ключи из store.entities и группируем их по базовому названию
+// Например: video, video1category, video1banner -> группа 'Video' с подстраницами
 const menuItems = computed(() => {
   const ents = store.entities || {}
   const groups = {}
 
+  // Преобразуем технический ключ в читабельный заголовок
+  // Убираем суффиксы, заменяем тире/подчёрки на пробелы, делаем заглавные буквы.
   function prettifyKey(k) {
     if (!k) return k
-    // replace dashes/underscores, numbers, basic transliteration
     return k
       .replace(/1category$|1banner$|\-category$|\-banner$/, '')
       .replace(/[-_]/g, ' ')
@@ -26,6 +33,7 @@ const menuItems = computed(() => {
   for (const key of Object.keys(ents)) {
     // base group key (remove common suffixes)
     const base = key.replace(/1category$|1banner$|\-category$|\-banner$/, '')
+
 
     if (!groups[base]) {
       groups[base] = { name: prettifyKey(base) || base, category: base, subcategories: [], open: false }
@@ -44,6 +52,8 @@ const menuItems = computed(() => {
   return Object.values(groups)
 })
 
+const activeCategory = computed(() => route.params.entity)
+
 function getRandomPath() {
   const paths = document.querySelectorAll('.anim-path')
   const randomIndex = Math.floor(Math.random() * paths.length)
@@ -60,6 +70,7 @@ function animateRandomPath() {
   const path = getRandomPath()
   const randomColor = getRandomColor()
   if (!path) return
+  // Анимация одного случайного path: прокручиваем и меняем цвет, затем возвращаем обратно
   gsap.to(path, {
     duration: 0.3,
     rotation: 360,
@@ -79,13 +90,15 @@ function animateRandomPath() {
 }
 
 function startAnimation() {
+  // Запускаем анимацию и рекурсивно планируем следующую через 2.5 секунды
   animateRandomPath()
   setTimeout(startAnimation, 2500)
 }
 
 function handleClick(event, item) {
+  // Клик по пункту меню: подсветим и перейдем на страницу списка сущности
   toggleActive(event)
-  emit('goTo', item.category)
+  router.push(`/admin/${item.category}`)
 }
 
 function toggleActive(event) {
@@ -95,11 +108,17 @@ function toggleActive(event) {
   link.classList.add('active')
 }
 
+// Показать/скрыть подменю группы. Закрывает другие группы, открывает выбранную.
 function toggleSubcategories(item) {
-  // menuItems is computed; to change open flags we need to mutate the array items
-  const arr = menuItems.value
-  arr.forEach((i) => (i.open = false))
-  item.open = !item.open
+  menuItems.value.forEach(i => {
+    // Закрываем все другие группы
+    if (i !== item) {
+      i.open = false;
+    }
+  });
+  console.log(item.open);
+  item.open = !item.open;
+  console.log(item.open);
 }
 
 onMounted(() => {
@@ -167,11 +186,9 @@ onMounted(() => {
         </a>
         <!-- Подкатегории -->
         <div v-if="item.open" class="subcategories">
-          <a v-for="(sub, index) in item.subcategories" :key="index" @click="
-            handleClick($event, {
-              category: sub.category,
-            })
-            " class="acc__link sub-link">
+          <a v-for="(sub, index) in item.subcategories" :key="index"
+            @click="handleClick($event, { category: sub.category })" class="acc__link sub-link"
+            :class="{ active: activeCategory === sub.category }">
             {{ sub.name }}
           </a>
         </div>

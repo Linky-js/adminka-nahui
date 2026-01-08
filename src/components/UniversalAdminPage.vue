@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, computed, defineProps, ref, watch, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from "axios";
 import { entityConfigs } from '@/configs/entityConfigs';
 import { useAppStore } from '@/stores/useAppStore'
@@ -23,6 +24,8 @@ const props = defineProps({
   entity: { type: String, required: true },
   initialData: { type: Object, default: () => ({}) },
 });
+
+const router = useRouter();
 
 // refs
 const isCalendarVisible = ref(false);
@@ -97,10 +100,33 @@ function resolveValueFromSource(data, srcKey) {
 
   return undefined;
 }
-function initForm() {
+async function loadInitialData() {
+  if (props.initialData && typeof props.initialData === 'object' && props.initialData.id && Object.keys(props.initialData).length === 1) {
+    // Если initialData имеет только id, загрузим полные данные
+    const authGet = `&auth=${user.username}:${user.auth_key}`;
+    let endpoint = `${apiUrl}api-${props.entity}/get-admin-list${authGet}&id=${props.initialData.id}`;
+    try {
+      const response = await axios.get(endpoint);
+      if (response.data && response.data[props.entity] && response.data[props.entity].length > 0) {
+        // Предполагаем, что API возвращает объект в массиве
+        const fullData = response.data[props.entity][0];
+        // Обновим initialData, но поскольку это prop, лучше напрямую использовать в initForm
+        // Или сделать reactive initialData
+        // Для простоты, вызовем initForm с fullData
+        initFormWithData(fullData);
+      }
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+    }
+  } else {
+    initForm();
+  }
+}
+
+function initFormWithData(data) {
   config.value.forEach((field) => {
     const srcKey = field.sourceKey || field.key;
-    const maybe = resolveValueFromSource(props.initialData, srcKey);
+    const maybe = resolveValueFromSource(data, srcKey);
     const value = maybe !== undefined ? maybe : getDefaultValue(field.type);
 
     // адаптация формата для images/image
@@ -113,31 +139,36 @@ function initForm() {
     }
   });
 
-  // дополнительная страховка: если в initialData есть вложенный category/region объекты, выставим соответствующие ключи
-  // например initialData.category.id => formData.categorieId
+  // дополнительная страховка: если в data есть вложенный category/region объекты, выставим соответствующие ключи
   config.value.forEach(field => {
     const tKey = field.key;
     const src = field.sourceKey || field.key;
-    if ((src === 'category_id' || tKey === 'categorieId') && props.initialData) {
-      const catVal = resolveValueFromSource(props.initialData, 'category_id') ?? resolveValueFromSource(props.initialData, 'category');
+    if ((src === 'category_id' || tKey === 'categorieId') && data) {
+      const catVal = resolveValueFromSource(data, 'category_id') ?? resolveValueFromSource(data, 'category');
       if (catVal !== undefined) formData[tKey] = catVal;
     }
-    if ((src === 'region_id' || tKey === 'regionId') && props.initialData) {
-      const regVal = resolveValueFromSource(props.initialData, 'region_id') ?? resolveValueFromSource(props.initialData, 'region');
+    if ((src === 'region_id' || tKey === 'regionId') && data) {
+      const regVal = resolveValueFromSource(data, 'region_id') ?? resolveValueFromSource(data, 'region');
       if (regVal !== undefined) formData[tKey] = regVal;
     }
   });
 }
 
-onMounted(() => {
+function initForm() {
+  initFormWithData(props.initialData);
+}
+
+onMounted(async () => {
   console.log('props.', props.entity);
 
-  initForm();
+  await loadInitialData();
   getDynamicOptions();
 });
 
 // Следим за изменением initialData (например, при редактировании)
-watch(() => props.initialData, initForm, { deep: true });
+watch(() => props.initialData, async (newData) => {
+  await loadInitialData();
+}, { deep: true });
 watch(() => props.entity, (val) => {
   console.log('props.entity', val);
 
@@ -480,6 +511,11 @@ async function saveEntity() {
     toast.success(isUpdate ? 'Изменения сохранены!' : 'Создано успешно!', {
       autoClose: 1000,
     });
+
+    // Перенаправление на список
+    setTimeout(() => {
+      router.push(`/admin/${props.entity}`);
+    }, 1000);
   } catch (error) {
     console.error('Ошибка при сохранении:', error);
     toast.error('Произошла ошибка при сохранении', { autoClose: 1000 });
