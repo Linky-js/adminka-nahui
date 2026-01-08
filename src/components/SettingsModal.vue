@@ -85,15 +85,24 @@ function loadPagesFromStore() {
     const ents = store.entities || {}
     pages.value = []
     for (const k in ents) {
-        const arr = ents[k] || []
-        const fields = arr.map(f => ({
+        const entry = ents[k]
+        let arr = []
+        let label = k
+        if (Array.isArray(entry)) {
+            arr = entry
+        } else if (entry && typeof entry === 'object' && entry.fields) {
+            arr = entry.fields
+            if (entry.label) label = entry.label
+        }
+
+        const fields = (arr || []).map(f => ({
             key: f.key || f.sourceKey || f.targetKey || '',
             label: f.label || '',
             type: f.type || 'input',
             sourceKey: f.sourceKey || f.key || '',
             optionsText: (f.props && f.props.options) ? JSON.stringify(f.props.options, null, 2) : ''
         }))
-        pages.value.push({ key: k, label: k, fields })
+        pages.value.push({ key: k, label, fields })
     }
 }
 
@@ -109,25 +118,28 @@ function save() {
         pages.value.forEach(p => {
             const key = (p.key || '').toString().trim()
             if (!key) return
-            mapped[key] = (p.fields || []).map(f => {
-                const obj = {
-                    type: f.type || 'input',
-                    key: f.key || f.sourceKey || '',
-                    label: f.label || '',
-                    sourceKey: f.sourceKey || f.key || '',
-                    targetKey: f.sourceKey || f.key || ''
-                }
-                if (f.type === 'select' && f.optionsText) {
-                    try {
-                        obj.props = { options: JSON.parse(f.optionsText) }
-                    } catch (e) {
-                        // try comma list
-                        const parts = f.optionsText.split(',').map(s => s.trim()).filter(Boolean)
-                        obj.props = { options: parts.map(p => ({ value: p, label: p })) }
+            mapped[key] = {
+                label: p.label || key,
+                fields: (p.fields || []).map(f => {
+                    const obj = {
+                        type: f.type || 'input',
+                        key: f.key || f.sourceKey || '',
+                        label: f.label || '',
+                        sourceKey: f.sourceKey || f.key || '',
+                        targetKey: f.sourceKey || f.key || ''
                     }
-                }
-                return obj
-            })
+                    if (f.type === 'select' && f.optionsText) {
+                        try {
+                            obj.props = { options: JSON.parse(f.optionsText) }
+                        } catch (e) {
+                            // try comma list
+                            const parts = f.optionsText.split(',').map(s => s.trim()).filter(Boolean)
+                            obj.props = { options: parts.map(p => ({ value: p, label: p })) }
+                        }
+                    }
+                    return obj
+                })
+            }
         })
 
         store.setApiUrl(localApiUrl.value)
@@ -275,7 +287,8 @@ line {
     max-height: 300px;
     overflow-y: auto;
 }
-.btn-delete{
+
+.btn-delete {
     padding: 5px 6px;
     background-color: #f19090;
     width: max-content;
@@ -286,6 +299,7 @@ line {
     display: flex;
     cursor: pointer;
 }
+
 .btn-delete:hover svg {
     fill: #fff;
 }

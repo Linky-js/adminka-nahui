@@ -1,6 +1,6 @@
 <script setup>
 import gsap from 'gsap'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAppStore } from '@/stores/useAppStore'
 
 const store = useAppStore()
@@ -10,60 +10,39 @@ const apiDomain = store.apiDomain
 
 const emit = defineEmits(['goTo'])
 
-const menuItems = ref([
-  {
-    name: 'Подкасты',
-    category: 'podcasts',
-    subcategories: [
-      { name: 'Категории подкастов', category: 'podcast-category' },
-      { name: 'Все подкасты', category: 'podcasts' },
-    ],
-    open: false,
-  },
-  { name: 'Новости', category: 'news', subcategories: [], open: false },
-  {
-    name: 'Видео',
-    category: 'video',
-    subcategories: [
-      { name: 'Категории видео', category: 'video-category' },
-      { name: 'Все видео', category: 'video' },
-      { name: 'Блогеры', category: 'blogger' },
-      { name: 'Банеры', category: 'video-banner' },
-    ],
-    open: false,
-  },
-  {
-    name: 'Библиотека',
-    category: 'book',
-    subcategories: [
-      { name: 'Категории книг', category: 'book-category' },
-      { name: 'Все книги', category: 'book' },
-    ],
-    open: false,
-  },
-  { name: 'Материалы', category: 'material', subcategories: [], open: false },
-  {
-    name: 'Тесты',
-    category: 'test',
-    subcategories: [
-      { name: 'Категории тестов', category: 'test-category' },
-      { name: 'Все тесты', category: 'test' },
-    ],
-    open: false,
-  },
-  {
-    name: 'Обьекты',
-    category: 'objects',
-    subcategories: [
-      { name: 'Категории обьектов', category: 'object-category' },
-      { name: 'Все обьекты', category: 'objects' },
-    ],
-    open: false,
-  },
-  { name: 'Темы', category: 'theme', subcategories: [], open: false },
-  { name: 'Прогресс пользователя', category: 'progress', subcategories: [], open: false },
-  { name: 'Уведомления', category: 'notify', subcategories: [], open: false },
-])
+const menuItems = computed(() => {
+  const ents = store.entities || {}
+  const groups = {}
+
+  function prettifyKey(k) {
+    if (!k) return k
+    // replace dashes/underscores, numbers, basic transliteration
+    return k
+      .replace(/1category$|1banner$|\-category$|\-banner$/, '')
+      .replace(/[-_]/g, ' ')
+      .replace(/\b\w/g, (m) => m.toUpperCase())
+  }
+
+  for (const key of Object.keys(ents)) {
+    // base group key (remove common suffixes)
+    const base = key.replace(/1category$|1banner$|\-category$|\-banner$/, '')
+
+    if (!groups[base]) {
+      groups[base] = { name: prettifyKey(base) || base, category: base, subcategories: [], open: false }
+    }
+
+    // determine display name for this page
+    const entry = ents[key]
+    let display = key
+    if (entry && typeof entry === 'object' && entry.label) display = entry.label
+    else display = prettifyKey(key)
+
+    groups[base].subcategories.push({ name: display, category: key })
+  }
+
+  // convert to array
+  return Object.values(groups)
+})
 
 function getRandomPath() {
   const paths = document.querySelectorAll('.anim-path')
@@ -117,7 +96,9 @@ function toggleActive(event) {
 }
 
 function toggleSubcategories(item) {
-  menuItems.value.forEach((i) => (i.open = false))
+  // menuItems is computed; to change open flags we need to mutate the array items
+  const arr = menuItems.value
+  arr.forEach((i) => (i.open = false))
   item.open = !item.open
 }
 

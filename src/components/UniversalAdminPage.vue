@@ -41,7 +41,12 @@ const user = store.user
 const apiUrl = store.apiUrl
 
 // computed
-const config = computed(() => (store.entities && store.entities[props.entity]) || entityConfigs[props.entity] || []);
+const config = computed(() => {
+  const val = store.entities ? store.entities[props.entity] : undefined
+  if (Array.isArray(val)) return val
+  if (val && typeof val === 'object' && Array.isArray(val.fields)) return val.fields
+  return entityConfigs[props.entity] || []
+})
 
 // form data
 const formData = reactive({});
