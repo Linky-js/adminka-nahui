@@ -7,6 +7,13 @@ const routes = [
     component: () => import('../pages/AdminPage.vue'),
   },
   {
+    path: '/admin/settings-api',
+    name: 'AdminSettingsApi',
+    component: () => import('../pages/AdminSettingsApi.vue'),
+    props: true,
+
+  },
+  {
     path: '/admin/:entity',
     name: 'AdminEntityList',
     component: () => import('../pages/EntityListPage.vue'),

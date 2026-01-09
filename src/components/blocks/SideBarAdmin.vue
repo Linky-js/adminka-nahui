@@ -124,6 +124,10 @@ function toggleSubcategories(item) {
 onMounted(() => {
   startAnimation()
 })
+
+function goToSettingsApi(){
+  router.push('/admin/settings-api')
+}
 </script>
 <template>
   <div class="sideBar__content">
@@ -173,6 +177,11 @@ onMounted(() => {
       <div class="head-text">Административная панель</div>
     </div>
     <div class="accBody">
+      <div>
+        <a @click="goToSettingsApi" class="acc__link">
+          Настройка API
+        </a>
+      </div>
       <div v-for="item in menuItems" :key="item.category">
         <a @click="
           [
