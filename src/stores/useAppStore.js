@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { entityConfigs } from '@/configs/entityConfigs'
+import { useEntityConfig } from '@/composables/useEntityConfig'
 
 const STORAGE_KEY = 'app_settings'
 
@@ -19,49 +19,70 @@ export const useAppStore = defineStore('app', {
   actions: {
     setUser(u) {
       this.user = u
-      this.saveToStorage()
+      // user не сохраняем на сервер, только локально если нужно
     },
     setApiUrl(url) {
       this.apiUrl = url
-      this.saveToStorage()
+      this.saveSettingsToServer()
     },
     setApiDomain(domain) {
       this.apiDomain = domain
-      this.saveToStorage()
+      this.saveSettingsToServer()
     },
-    setEntities(entities) {
+    async setEntities(entities) {
       this.entities = entities || {}
-      this.saveToStorage()
+      await this.saveEntitiesToApi()
     },
     saveToStorage() {
-      try {
-        const payload = {
-          apiUrl: this.apiUrl,
-          apiDomain: this.apiDomain,
-          entities: this.entities,
-        }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
-      } catch (e) {
-        console.error('Failed to save settings to localStorage', e)
-      }
+      // deprecated, but keep for compatibility if needed
     },
-    init() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY)
-        if (raw) {
-          const parsed = JSON.parse(raw)
-          if (parsed.apiUrl) this.apiUrl = parsed.apiUrl
-          if (parsed.apiDomain) this.apiDomain = parsed.apiDomain
-          if (parsed.entities) this.entities = parsed.entities
-          else this.entities = entityConfigs || {}
+    async init() {
+      // Загружаем settings с сервера
+      await this.loadSettingsFromServer()
+      // Загружаем entities с сервера
+      await this.loadEntitiesFromApi()
+    },
+    async loadSettingsFromServer() {
+      const { loadSettings } = useEntityConfig()
+      const settings = await loadSettings()
+      if (settings.apiUrl) this.apiUrl = settings.apiUrl
+      if (settings.apiDomain) this.apiDomain = settings.apiDomain
+    },
+    async saveSettingsToServer() {
+      const { saveSettings } = useEntityConfig()
+      const settings = {
+        apiUrl: this.apiUrl,
+        apiDomain: this.apiDomain,
+      }
+      await saveSettings(settings)
+    },
+    async loadEntitiesFromApi() {
+      const { listEntities } = useEntityConfig()
+      this.entities = await listEntities()
+    },
+    async saveEntitiesToApi() {
+      const { listEntities, createEntity, updateEntity, deleteEntity } = useEntityConfig()
+      const currentEntities = await listEntities()
+      const currentKeys = Object.keys(currentEntities)
+      const newKeys = Object.keys(this.entities)
+
+      // Удаляем старые entities, которых нет в новых
+      for (const key of currentKeys) {
+        if (!newKeys.includes(key)) {
+          await deleteEntity(key)
+        }
+      }
+
+      // Создаем или обновляем
+      for (const key of newKeys) {
+        const config = this.entities[key]
+        if (currentKeys.includes(key)) {
+          await updateEntity(key, config)
         } else {
-          // fallback to default configs shipped with app
-          this.entities = entityConfigs || {}
+          await createEntity(key, config)
         }
-      } catch (e) {
-        console.error('Failed to load settings from localStorage', e)
-        this.entities = entityConfigs || {}
       }
     },
+    
   },
 })

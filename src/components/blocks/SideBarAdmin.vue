@@ -11,7 +11,7 @@ const user = store.user
 const apiUrl = store.apiUrl
 const apiDomain = store.apiDomain
 
-// const emit = defineEmits(['goTo'])
+const openGroups = ref({})
 
 // Собираем меню из сущностей в сторе
 // Берём все ключи из store.entities и группируем их по базовому названию
@@ -20,10 +20,7 @@ const menuItems = computed(() => {
   const ents = store.entities || {}
   const groups = {}
 
-  // Преобразуем технический ключ в читабельный заголовок
-  // Убираем суффиксы, заменяем тире/подчёрки на пробелы, делаем заглавные буквы.
   function prettifyKey(k) {
-    if (!k) return k
     return k
       .replace(/1category$|1banner$|\-category$|\-banner$/, '')
       .replace(/[-_]/g, ' ')
@@ -31,26 +28,28 @@ const menuItems = computed(() => {
   }
 
   for (const key of Object.keys(ents)) {
-    // base group key (remove common suffixes)
     const base = key.replace(/1category$|1banner$|\-category$|\-banner$/, '')
 
-
     if (!groups[base]) {
-      groups[base] = { name: prettifyKey(base) || base, category: base, subcategories: [], open: false }
+      groups[base] = {
+        name: prettifyKey(base),
+        category: base,
+        subcategories: [],
+      }
     }
 
-    // determine display name for this page
     const entry = ents[key]
-    let display = key
-    if (entry && typeof entry === 'object' && entry.label) display = entry.label
-    else display = prettifyKey(key)
+    const display = entry?.label || prettifyKey(key)
 
-    groups[base].subcategories.push({ name: display, category: key })
+    groups[base].subcategories.push({
+      name: display,
+      category: key,
+    })
   }
 
-  // convert to array
   return Object.values(groups)
 })
+
 
 const activeCategory = computed(() => route.params.entity)
 
@@ -110,16 +109,15 @@ function toggleActive(event) {
 
 // Показать/скрыть подменю группы. Закрывает другие группы, открывает выбранную.
 function toggleSubcategories(item) {
-  menuItems.value.forEach(i => {
-    // Закрываем все другие группы
-    if (i !== item) {
-      i.open = false;
-    }
-  });
-  console.log(item.open);
-  item.open = !item.open;
-  console.log(item.open);
+  const key = item.category
+
+  // закрываем все
+  openGroups.value = {}
+
+  // открываем текущую
+  openGroups.value[key] = true
 }
+
 
 onMounted(() => {
   startAnimation()
@@ -183,25 +181,18 @@ function goToSettingsApi(){
         </a>
       </div>
       <div v-for="item in menuItems" :key="item.category">
-        <a @click="
-          [
-            toggleSubcategories(item),
-            handleClick($event, {
-              category: item.category,
-            }),
-          ]
-          " class="acc__link" :class="{ active: item.open }">
+        <a class="acc__link" :class="{ active: openGroups[item.category] }" @click="toggleSubcategories(item)">
           {{ item.name }}
         </a>
-        <!-- Подкатегории -->
-        <div v-if="item.open" class="subcategories">
-          <a v-for="(sub, index) in item.subcategories" :key="index"
-            @click="handleClick($event, { category: sub.category })" class="acc__link sub-link"
-            :class="{ active: activeCategory === sub.category }">
+
+        <div v-if="openGroups[item.category]" class="subcategories">
+          <a v-for="sub in item.subcategories" :key="sub.category" class="acc__link sub-link"
+            @click="handleClick($event, { category: sub.category })">
             {{ sub.name }}
           </a>
         </div>
       </div>
+
     </div>
   </div>
 </template>

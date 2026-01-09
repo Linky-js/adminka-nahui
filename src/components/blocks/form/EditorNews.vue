@@ -17,6 +17,8 @@ import Text from "@tiptap/extension-text";
 import axios from "axios";
 import { useAppStore } from "@/stores/useAppStore";
 
+import { useAppStore } from "@/stores/useAppStore";
+
 const props = defineProps({
   modelValue: { type: String, default: "" },
   label: { type: String, default: "Контент" },

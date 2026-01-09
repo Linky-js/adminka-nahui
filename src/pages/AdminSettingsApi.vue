@@ -1,15 +1,19 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useAppStore } from "@/stores/useAppStore";
 import AdminLayout from "@/components/layouts/AdminLayout.vue";
 import SettingsModal from "@/components/SettingsModal.vue";
-
 
 const store = useAppStore();
 const localApiUrl = ref(store.apiUrl);
 const localApiDomain = ref(store.apiDomain);
 const showSettings = ref(false);
+const selectedEntity = ref(null);
 
+function openSettings(entityKey) {
+  selectedEntity.value = entityKey;
+  showSettings.value = true;
+}
 
 const pages = ref([]);
 function loadPagesFromStore() {
@@ -42,12 +46,30 @@ function loadPagesFromStore() {
 
 loadPagesFromStore();
 
+// Watch for changes in store.entities to reload pages
+watch(() => store.entities, () => {
+  loadPagesFromStore();
+}, { deep: true });
+
+function saveApiSettings() {
+  store.setApiUrl(localApiUrl.value);
+  store.setApiDomain(localApiDomain.value);
+}
+
 function addPage() {
-  pages.value.push({ key: "", label: "", fields: [] });
+  const newKey = `new_entity_${Date.now()}`;
+  const newEntities = { ...store.entities };
+  newEntities[newKey] = { label: "Новая сущность", fields: [] };
+  store.setEntities(newEntities);
 }
 
 function removePage(index) {
-  pages.value.splice(index, 1);
+  const page = pages.value[index];
+  if (page && page.key) {
+    const newEntities = { ...store.entities };
+    delete newEntities[page.key];
+    store.setEntities(newEntities);
+  }
 }
 
 </script>
@@ -64,27 +86,20 @@ function removePage(index) {
           <label>API DOMAIN</label>
           <input v-model="localApiDomain" placeholder="example.com" />
         </div>
+        <button class="btn btn-primary" @click="saveApiSettings">Сохранить настройки API</button>
       </div>
       <div class="entities-section">
         <h3>Все сущности</h3>
 
         <div class="pages-container">
           <div class="pages-list">
-            <div
-              v-for="(page, pIndex) in pages"
-              :key="pIndex"
-              class="page-card"
-            >
+            <div v-for="(page, pIndex) in pages" :key="pIndex" class="page-card">
               <div class="page-card-header">
                 <div class="page-info">
                   <span class="page-index">{{ pIndex + 1 }}</span>
-                  <h4 class="page-title" @click="showSettings = true">{{ page.label }}</h4>
+                  <h4 class="page-title" @click="openSettings(page.key)">{{ page.label }}</h4>
                 </div>
-                <button
-                  class="btn btn-small btn-danger"
-                  @click="removePage(pIndex)"
-                  title="Удалить страницу"
-                >
+                <button class="btn btn-small btn-danger" @click="removePage(pIndex)" title="Удалить страницу">
                   <span class="btn-icon">×</span>
                   <span class="btn-text">Удалить</span>
                 </button>
@@ -108,7 +123,7 @@ function removePage(index) {
       </div>
     </div>
   </AdminLayout>
-  <SettingsModal v-if="showSettings" @close="showSettings = false" />
+  <SettingsModal v-if="showSettings" :entity="selectedEntity" @close="showSettings = false; selectedEntity = null" />
 </template>
 <style scoped>
 .admin-setting-api {
