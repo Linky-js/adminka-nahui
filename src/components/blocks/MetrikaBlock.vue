@@ -1,20 +1,16 @@
 <script setup>
+import { computed } from 'vue'
+import { useAppStore } from '@/stores/useAppStore'
+import UniversalChart from './UniversalChart.vue'
 
+const store = useAppStore()
+const charts = computed(() => store.charts)
 </script>
 
 <template>
   <div class="metrika">
-    <div class="chart">
-      <div class="biggesthead">Кол-во регистраций</div>
-      <canvas id="allRegisterChart"></canvas>
-    </div>
-    <div class="chart">
-      <div class="biggesthead">Топ 5 школ по регистрации</div>
-      <canvas id="salaryChart"></canvas>
-    </div>
-    <div class="chart">
-      <div class="biggesthead">Топ 5 городов по регистрации</div>
-      <canvas id="salaryChartCity"></canvas>
+    <div v-for="(chartConfig, index) in charts" :key="index" class="chart">
+      <UniversalChart :config="chartConfig" />
     </div>
   </div>
 </template>
@@ -25,13 +21,14 @@
   gap: 20px;
   flex-wrap: wrap;
 }
+
 .chart {
   width: calc(50% - 10px);
   display: flex;
   flex-direction: column;
-
   gap: 20px;
 }
+
 .biggesthead {
   color: #333;
   font-family: Onest;

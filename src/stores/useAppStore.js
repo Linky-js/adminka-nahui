@@ -8,12 +8,14 @@ export const useAppStore = defineStore('app', {
     user: { username: 'guest', auth_key: '' },
     apiUrl: '',
     apiDomain: '',
+    charts: [],
     entities: {},
   }),
   getters: {
     getUser: (state) => state.user,
     getApiUrl: (state) => state.apiUrl,
     getApiDomain: (state) => state.apiDomain,
+    getCharts: (state) => state.charts,
     getEntities: (state) => state.entities,
   },
   actions: {
@@ -27,6 +29,10 @@ export const useAppStore = defineStore('app', {
     },
     setApiDomain(domain) {
       this.apiDomain = domain
+      this.saveSettingsToServer()
+    },
+    setCharts(charts) {
+      this.charts = charts || []
       this.saveSettingsToServer()
     },
     async setEntities(entities) {
@@ -47,12 +53,14 @@ export const useAppStore = defineStore('app', {
       const settings = await loadSettings()
       if (settings.apiUrl) this.apiUrl = settings.apiUrl
       if (settings.apiDomain) this.apiDomain = settings.apiDomain
+      if (settings.charts) this.charts = settings.charts
     },
     async saveSettingsToServer() {
       const { saveSettings } = useEntityConfig()
       const settings = {
         apiUrl: this.apiUrl,
         apiDomain: this.apiDomain,
+        charts: this.charts,
       }
       await saveSettings(settings)
     },
@@ -83,6 +91,5 @@ export const useAppStore = defineStore('app', {
         }
       }
     },
-    
   },
 })

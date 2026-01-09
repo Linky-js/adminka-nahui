@@ -125,6 +125,7 @@ switch ($action) {
         $settings = [
             'apiUrl' => $input['apiUrl'] ?? '',
             'apiDomain' => $input['apiDomain'] ?? '',
+            'charts' => $input['charts'] ?? [],
         ];
         writeSettings($settings);
         echo json_encode(['success' => true]);
