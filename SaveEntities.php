@@ -5,10 +5,11 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+    return true;
 }
 
 define('CONFIG_FILE', __DIR__ . '/public/entityConfig.json');
+define('SETTINGS_FILE', __DIR__ . '/public/settings.json');
 
 function readConfig()
 {
@@ -26,6 +27,24 @@ function writeConfig($config)
         mkdir($dir, 0755, true);
     }
     file_put_contents(CONFIG_FILE, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+function readSettings()
+{
+    if (!file_exists(SETTINGS_FILE)) {
+        return [];
+    }
+    $content = file_get_contents(SETTINGS_FILE);
+    return json_decode($content, true) ?: [];
+}
+
+function writeSettings($settings)
+{
+    $dir = dirname(SETTINGS_FILE);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    file_put_contents(SETTINGS_FILE, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 $action = $_GET['action'] ?? '';
@@ -96,8 +115,25 @@ switch ($action) {
         echo json_encode(['success' => true]);
         break;
 
-    default:
-        http_response_code(400);
+    case 'save_settings':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            break;
+        }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $settings = [
+            'apiUrl' => $input['apiUrl'] ?? '',
+            'apiDomain' => $input['apiDomain'] ?? '',
+        ];
+        writeSettings($settings);
+        echo json_encode(['success' => true]);
+        break;
+
+    case 'load_settings':
+        $settings = readSettings();
+        echo json_encode(['settings' => $settings]);
+        break;
         echo json_encode(['error' => 'Invalid action']);
         break;
 }

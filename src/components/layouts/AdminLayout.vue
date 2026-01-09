@@ -7,27 +7,15 @@
     <div class="info">
       <div class="info__top">
         <HeaderAdmin />
-        <button
-          class="settings-icon"
-          @click="showSettings = true"
-          aria-label="Настройки"
-        >
-          ⚙️
-        </button>
       </div>
       <slot />
-      <SettingsModal v-if="showSettings" @close="showSettings = false" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
 import SideBarAdmin from "@/components/blocks/SideBarAdmin.vue";
 import HeaderAdmin from "@/components/blocks/HeaderAdmin.vue";
-import SettingsModal from "@/components/SettingsModal.vue";
-
-const showSettings = ref(false);
 </script>
 
 <style scoped>
@@ -51,6 +39,7 @@ const showSettings = ref(false);
   width: 100%;
   max-width: 954px;
 }
+
 .info__top {
   display: flex;
   align-items: end;

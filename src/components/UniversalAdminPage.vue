@@ -17,8 +17,7 @@ import BaseSelect from '@/components/blocks/form/BaseSelect.vue';
 import BaseDatePicker from '@/components/blocks/form/BaseDatePicker.vue';
 import BaseCoords from '@/components/blocks/form/KoordinatesVal.vue';
 import DragImages from '@/components/blocks/form/DragImages.vue';
-import TestElement from '@/components/blocks/form/TestElement.vue';
-
+import TestElement from '@/components/blocks/form/TestElement.vue'; import SettingsModal from '@/components/SettingsModal.vue';
 
 // props
 const props = defineProps({
@@ -34,6 +33,7 @@ const formattedDate = ref("Выберите дату");
 const dateRange = ref(null);
 const fieldOptions = reactive({}); // сюда складываем options для селектов: fieldOptions[fieldKey] = [{value,label},...]
 // const isSaving = ref(false);
+const showSettings = ref(false);
 
 // вспомогательные refs для хранения "сырых" списков (если нужно)
 const categoriesRaw = ref([]);
@@ -72,6 +72,12 @@ const config = computed(() => {
   if (Array.isArray(val)) return val
   if (val && typeof val === 'object' && Array.isArray(val.fields)) return val.fields
   return entityConfigs.value[props.entity] || []
+})
+
+const entityLabel = computed(() => {
+  const ent = store.entities ? store.entities[props.entity] : undefined
+  if (ent && ent.label) return ent.label
+  return props.entity
 })
 
 // form data
@@ -485,10 +491,19 @@ function handleDateChange(timestamp = false) {
 
 <template>
   <div class="content-editor">
+    <div class="page-header">
+      <h2>{{ entityLabel }}</h2>
+      <button class="settings-icon" @click="showSettings = true" title="Настройки сущности">
+        ⚙️
+      </button>
+    </div>
+
     <component v-for="field in config" :is="getComponent(field.type)" :key="field.key" v-model="formData[field.key]"
       :label="field.label" v-bind="getFieldProps(field)" />
 
     <button @click="saveEntity" class="btn btn-primary">Сохранить</button>
+
+    <SettingsModal v-if="showSettings" :entity="props.entity" @close="showSettings = false" />
   </div>
 </template>
 
@@ -502,6 +517,32 @@ function handleDateChange(timestamp = false) {
   flex-direction: column;
   gap: 20px;
   margin: 0 0 40px 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.settings-icon {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.settings-icon:hover {
+  background-color: #f0f0f0;
 }
 
 .form-group {
