@@ -137,7 +137,7 @@ const dragLeave = () => (isDragActive.value = false)
     >
       <!-- Множественный режим -->
       <vuedraggable
-        v-if="multiple"
+        v-if="multiple && images.length > 0"
         v-model="images"
         item-key="id"
         @start="drag = true"
@@ -151,7 +151,7 @@ const dragLeave = () => (isDragActive.value = false)
         </template>
       </vuedraggable>
       
-      <div v-else class="single-image">
+      <div v-else-if="!multiple && images[0]" class="single-image">
         <img :src="images[0]?.dataurl || apiDomain + 'web/uploads/' + images[0]?.url" alt="" />
         <button @click="removeImage(images[0])" class="remove-btn">×</button>
       </div>
