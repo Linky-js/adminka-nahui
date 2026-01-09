@@ -552,6 +552,7 @@ function handleDateChange(timestamp = false) {
 }
 
 .content-editor {
+  color: #666;
   display: flex;
   flex-direction: column;
   gap: 20px;
