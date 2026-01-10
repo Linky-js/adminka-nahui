@@ -1,12 +1,15 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useAppStore } from "@/stores/useAppStore";
+import { useEntityConfig } from "@/composables/useEntityConfig";
 import AdminLayout from "@/components/layouts/AdminLayout.vue";
 import SettingsModal from "@/components/SettingsModal.vue";
 
 const store = useAppStore();
+const { loadSettings, saveSettings } = useEntityConfig();
 const localApiUrl = ref(store.apiUrl);
 const localApiDomain = ref(store.apiDomain);
+const localCharts = ref(store.charts);
 const showSettings = ref(false);
 const selectedEntity = ref(null);
 
@@ -51,9 +54,17 @@ watch(() => store.entities, () => {
   loadPagesFromStore();
 }, { deep: true });
 
+onMounted(async () => {
+  const settings = await loadSettings();
+  localCharts.value = settings.charts || [];
+});
+
 function saveApiSettings() {
   store.setApiUrl(localApiUrl.value);
   store.setApiDomain(localApiDomain.value);
+  store.setCharts(localCharts.value);
+  console.log("localCharts.value:", localCharts.value);
+  
 }
 
 function addPage() {
@@ -63,13 +74,23 @@ function addPage() {
   store.setEntities(newEntities);
 }
 
-function removePage(index) {
-  const page = pages.value[index];
-  if (page && page.key) {
-    const newEntities = { ...store.entities };
-    delete newEntities[page.key];
-    store.setEntities(newEntities);
-  }
+function addChart() {
+  localCharts.value.push({
+    apiMethod: '',
+    title: 'Новый график',
+    type: 'line',
+    showTooltip: true,
+    period: 10,
+    orientation: 'ltr'
+  });
+}
+
+function removeChart(index) {
+  localCharts.value.splice(index, 1);
+}
+
+function updateChart(index, field, value) {
+  localCharts.value[index][field] = value;
 }
 
 </script>
@@ -85,6 +106,47 @@ function removePage(index) {
         <div class="field">
           <label>API DOMAIN</label>
           <input v-model="localApiDomain" placeholder="example.com" />
+        </div>
+        <div class="charts-section">
+          <h4>Графики метрик</h4>
+          <div v-for="(chart, index) in localCharts" :key="index" class="chart-item">
+            <div class="chart-fields">
+              <div class="field">
+                <label>API Method</label>
+                <input v-model="chart.apiMethod" placeholder="/metrik/daily-sale" />
+              </div>
+              <div class="field">
+                <label>Название</label>
+                <input v-model="chart.title" placeholder="Daily Sales" />
+              </div>
+              <div class="field">
+                <label>Тип</label>
+                <select v-model="chart.type">
+                  <option value="line">Линия</option>
+                  <option value="bar">Бары</option>
+                  <option value="area">Область</option>
+                  <option value="scatter">Точки</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Показывать подсказки</label>
+                <input type="checkbox" v-model="chart.showTooltip" />
+              </div>
+              <div class="field">
+                <label>Период (кол-во точек)</label>
+                <input type="number" v-model.number="chart.period" min="1" />
+              </div>
+              <div class="field">
+                <label>Ориентация</label>
+                <select v-model="chart.orientation">
+                  <option value="ltr">Слева направо</option>
+                  <option value="rtl">Справа налево</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-small btn-danger" @click="removeChart(index)">Удалить</button>
+          </div>
+          <button class="btn btn-primary" @click="addChart">Добавить график</button>
         </div>
         <button class="btn btn-primary" @click="saveApiSettings">Сохранить настройки API</button>
       </div>
@@ -142,10 +204,33 @@ function removePage(index) {
   color: #666;
 }
 
-.field input {
+.charts-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.chart-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 10px;
   padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #e6e6e6;
+  background: white;
+  border-radius: 6px;
+}
+
+.chart-fields {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.chart-fields .field {
+  flex: 1;
+  min-width: 150px;
 }
 
 /* Основные стили */

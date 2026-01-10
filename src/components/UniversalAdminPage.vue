@@ -17,7 +17,8 @@ import BaseSelect from '@/components/blocks/form/BaseSelect.vue';
 import BaseDatePicker from '@/components/blocks/form/BaseDatePicker.vue';
 import BaseCoords from '@/components/blocks/form/KoordinatesVal.vue';
 import DragImages from '@/components/blocks/form/DragImages.vue';
-import TestElement from '@/components/blocks/form/TestElement.vue'; import SettingsModal from '@/components/SettingsModal.vue';
+import TestElement from '@/components/blocks/form/TestElement.vue'; 
+import SettingsModal from '@/components/SettingsModal.vue';
 
 // props
 const props = defineProps({
