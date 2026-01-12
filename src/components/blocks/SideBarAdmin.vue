@@ -126,11 +126,14 @@ onMounted(() => {
 function goToSettingsApi(){
   router.push('/admin/settings-api')
 }
+function goToAdmin(){
+  router.push('/admin')
+}
 </script>
 <template>
   <div class="sideBar__content">
     <div class="accHead">
-      <div class="logo">
+      <div class="logo" @click="goToAdmin">
         <svg xmlns="http://www.w3.org/2000/svg" width="149" height="35" viewBox="0 0 149 35" fill="none">
           <path d="M12.983 0.00195312H0V35H12.983V0.00195312Z" fill="white" />
           <path
@@ -212,6 +215,7 @@ function goToSettingsApi(){
   gap: 14px;
   width: 100%;
 }
+.logo{cursor: pointer;}
 
 .head-text {
   color: #fff;
