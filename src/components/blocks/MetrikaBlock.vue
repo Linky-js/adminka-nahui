@@ -31,7 +31,7 @@ const charts = computed(() => store.charts)
 
 .biggesthead {
   color: #333;
-  font-family: Onest;
+  font-family: Arial;
   font-size: 16px;
   font-style: normal;
   font-weight: 700;

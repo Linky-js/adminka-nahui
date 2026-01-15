@@ -17,7 +17,7 @@ import BaseSelect from '@/components/blocks/form/BaseSelect.vue';
 import BaseDatePicker from '@/components/blocks/form/BaseDatePicker.vue';
 import BaseCoords from '@/components/blocks/form/KoordinatesVal.vue';
 import DragImages from '@/components/blocks/form/DragImages.vue';
-import TestElement from '@/components/blocks/form/TestElement.vue'; 
+import TestElement from '@/components/blocks/form/TestElement.vue';
 import SettingsModal from '@/components/SettingsModal.vue';
 
 // props
@@ -44,7 +44,7 @@ const regionsRaw = ref([]);
 const store = useAppStore()
 const user = store.user
 const apiUrl = store.apiUrl
-const { get, post, upload, getEntityById, saveEntity: apiSaveEntity, listEntityConfigs } = useApi()
+const { get, post, upload, getEntityById, getEntity, saveEntity: apiSaveEntity, createEntity, updateEntity, listEntityConfigs } = useApi()
 const { uploadFile } = useFileUpload()
 
 // entity configs from JSON
@@ -134,7 +134,7 @@ async function loadInitialData() {
   if (props.initialData && typeof props.initialData === 'object' && props.initialData.id && Object.keys(props.initialData).length === 1) {
     // Если initialData имеет только id, загрузим полные данные
     try {
-      const fullData = await getEntityById(props.entity, props.initialData.id);
+      const fullData = await getEntity('entities/' + props.entity, props.initialData.id);
       if (fullData) {
         initFormWithData(fullData);
       } else {
@@ -335,71 +335,67 @@ function getFieldProps(field) {
 // buildParamsFromConfig
 async function buildParamsFromConfig(config, formDataLocal) {
   try {
-    const params = {};
-    params.date_add = new Date();
+    if (!Array.isArray(config)) {
+      console.warn('Config is not array:', config)
+      return {}
+    }
+
+    const params = {}
+    params.date_add = new Date()
 
     for (const field of config) {
+      const key = field.sourceKey || field.key
+      const value = formDataLocal[field.key]
 
+      if (value === undefined) continue
 
-      const key = field.sourceKey || field.key;
-      const value = formDataLocal[field.key];
-
-      // --- Пропускаем undefined
-      if (value === undefined) continue;
-
-      // --- Если поле не изображение
-      if (field.type !== "images" && field.type != "file") {
-        params[key] = value;
-        console.log('field', field.type, value);
-        continue;
+      if (field.type !== 'images' && field.type !== 'file') {
+        params[key] = value
+        continue
       }
 
-      // --- Обработка изображений (single / multiple)
       if (!value) {
-        params[key] = null;
-        continue;
+        params[key] = null
+        continue
       }
 
-      // --- Если массив (множественные изображения)
       if (Array.isArray(value)) {
-        const uploadedList = [];
+        const uploadedList = []
 
         for (const item of value) {
-          console.log('item', item);
-          // если это уже существующая картинка — не грузим
-          if (item.isExisting && (item.url || item.path)) {
-            uploadedList.push(item.url?.img || item.url || item.path);
-            continue;
+          if (item?.isExisting && (item.url || item.path)) {
+            uploadedList.push(item.url?.img || item.url || item.path)
+            continue
           }
 
-          // если есть File или dataurl — грузим
-          const uploaded = await uploadFile(item);
-          if (uploaded) uploadedList.push(uploaded);
+          const uploaded = await uploadFile(item)
+          if (uploaded) uploadedList.push(uploaded)
         }
 
-        params[key] = uploadedList.length > 1 ? uploadedList : uploadedList[0];
-        continue;
+        params[key] = uploadedList.length > 1
+          ? uploadedList
+          : uploadedList[0]
+
+        continue
       }
 
-      // --- Если не массив (одиночное изображение)
-      if (typeof value === "string") {
-        params[key] = value;
-        continue;
+      if (typeof value === 'string') {
+        params[key] = value
+        continue
       }
 
       if (value.isExisting && (value.url || value.path)) {
-        params[key] = value.url || value.path;
-        continue;
+        params[key] = value.url || value.path
+        continue
       }
 
-      const uploaded = await uploadFile(value);
-      params[key] = uploaded;
+      params[key] = await uploadFile(value)
     }
 
-    return params;
+    return params
   } catch (error) {
-    console.error("Ошибка при формировании параметров:", error);
-    return {};
+    console.error('Ошибка при формировании параметров:', error)
+    return {}
   }
 }
 
@@ -408,16 +404,22 @@ async function buildParamsFromConfig(config, formDataLocal) {
 async function saveEntity() {
   const isUpdate = !!props.initialData?.id;
   const configCurrent = entityConfigs.value[props.entity] || [];
-
+  console.log('configCurrent', configCurrent);
+  
   try {
     // --- 1. собираем параметры
     const params = await buildParamsFromConfig(configCurrent, formData);
 
-    if (props.entity === 'news') params.author_id = user.user_id;
     if (isUpdate) params.id = props.initialData.id;
 
     // --- 2. сохраняем сам объект
-    const data = await apiSaveEntity(props.entity, params, isUpdate);
+    let data;
+    console.log('params', params);
+    if (isUpdate) {
+      data = await updateEntity('entities/' + props.entity, params.id, params);
+    } else {
+      data = await createEntity('entities/' + props.entity, params);
+    }
 
     if (data.status === 'false') {
       toast.error(data.error || 'Ошибка при сохранении', { autoClose: 1500 });
@@ -502,7 +504,7 @@ function handleDateChange(timestamp = false) {
     <component v-for="field in config" :is="getComponent(field.type)" :key="field.key" v-model="formData[field.key]"
       :label="field.label" v-bind="getFieldProps(field)" />
 
-    <button @click="saveEntity" class="btn btn-primary">Сохранить</button>
+    <button @click="saveEntity" class="btn primary">Сохранить</button>
 
     <SettingsModal v-if="showSettings" :entity="props.entity" @close="showSettings = false" />
   </div>

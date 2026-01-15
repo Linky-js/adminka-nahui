@@ -124,7 +124,18 @@ function save() {
       };
     });
 
-    store.setEntities(mapped);
+    if (props.entity) {
+      // Update only the specific entity
+      const newEntities = { ...store.entities };
+      const key = Object.keys(mapped)[0]; // Assuming only one entity in mapped when props.entity is set
+      if (key) {
+        newEntities[key] = mapped[key];
+      }
+      store.setEntities(newEntities);
+    } else {
+      // Update all entities
+      store.setEntities(mapped);
+    }
     emit("close");
   } catch (e) {
     error.value = "Ошибка при сохранении сущностей";
@@ -174,50 +185,21 @@ const getFieldTypeLabel = (type) => {
 </script>
 
 <template>
-  <div class="settings-overlay" @click.self="close">
+  <div class="settings-overlay">
     <div class="settings-modal">
       <div class="modal-header">
         <div class="header-content">
-          <svg
-            v-if="!props.entity"
-            class="header-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M10.5 6H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8.5m-6-12H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4.5m0-12v12"
-            />
+          <svg v-if="!props.entity" class="header-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+            fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M10.5 6H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8.5m-6-12H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4.5m0-12v12" />
           </svg>
-          <svg
-            v-else
-            class="header-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-            />
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a1.998 1.998 0 0 1 0 2.83 1.998 1.998 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a1.998 1.998 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 3.417 1.415 2 2 0 0 1-.587 1.415l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
-            />
+          <svg v-else class="header-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+            viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a1.998 1.998 0 0 1 0 2.83 1.998 1.998 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a1.998 1.998 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 3.417 1.415 2 2 0 0 1-.587 1.415l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
           </svg>
           <div>
             <h3>
@@ -237,20 +219,9 @@ const getFieldTypeLabel = (type) => {
           </div>
         </div>
         <button class="close-btn" @click="close">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M18 6 6 18M6 6l12 12"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -263,13 +234,8 @@ const getFieldTypeLabel = (type) => {
           </div>
           <div class="tabs-container">
             <div class="tabs">
-              <button
-                v-for="(page, pIndex) in pages"
-                :key="pIndex"
-                class="tab"
-                :class="{ active: currentPage === pIndex }"
-                @click="checkPage(pIndex)"
-              >
+              <button v-for="(page, pIndex) in pages" :key="pIndex" class="tab"
+                :class="{ active: currentPage === pIndex }" @click="checkPage(pIndex)">
                 <span class="tab-label">{{
                   page.label || "Новая страница"
                 }}</span>
@@ -280,36 +246,21 @@ const getFieldTypeLabel = (type) => {
         </div>
 
         <div class="pages">
-          <div
-            v-for="(page, pIndex) in pages"
-            :key="pIndex"
-            class="page"
-            v-show="!props.entity || pIndex === 0"
-          >
+          <div v-for="(page, pIndex) in pages" :key="pIndex" class="page" v-show="!props.entity || pIndex === 0">
             <div class="form-group">
               <label class="form-label">
                 <span class="label-text">Отображаемое название</span>
                 <span class="label-hint">Будет показано в интерфейсе</span>
               </label>
-              <input
-                v-model="page.label"
-                placeholder="Например: Все видео"
-                class="form-input"
-              />
+              <input v-model="page.label" placeholder="Например: Все видео" class="form-input" />
             </div>
 
             <div class="form-group">
               <label class="form-label">
                 <span class="label-text">Ключ страницы</span>
-                <span class="label-hint"
-                  >Используется в коде (только латиница)</span
-                >
+                <span class="label-hint">Используется в коде (только латиница)</span>
               </label>
-              <input
-                v-model="page.key"
-                placeholder="Например: video"
-                class="form-input"
-              />
+              <input v-model="page.key" placeholder="Например: video" class="form-input" />
             </div>
 
             <div class="divider">
@@ -323,33 +274,15 @@ const getFieldTypeLabel = (type) => {
               </div>
 
               <div class="fields-list">
-                <div
-                  v-for="(f, fIndex) in page.fields"
-                  :key="fIndex"
-                  class="field-card"
-                >
+                <div v-for="(f, fIndex) in page.fields" :key="fIndex" class="field-card">
                   <div class="field-card-header">
                     <div class="field-type-badge" :class="f.type">
                       {{ getFieldTypeLabel(f.type) }}
                     </div>
-                    <button
-                      class="field-delete-btn"
-                      @click="removeField(pIndex, fIndex)"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M18 6 6 18M6 6l12 12"
-                        />
+                    <button class="field-delete-btn" @click="removeField(pIndex, fIndex)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M18 6 6 18M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
@@ -357,20 +290,12 @@ const getFieldTypeLabel = (type) => {
                   <div class="field-card-body">
                     <div class="form-group compact">
                       <label class="label-text">Название поля</label>
-                      <input
-                        v-model="f.label"
-                        placeholder="Заголовок, Описание..."
-                        class="form-input"
-                      />
+                      <input v-model="f.label" placeholder="Заголовок, Описание..." class="form-input" />
                     </div>
 
                     <div class="form-group compact">
                       <label class="label-text">Ключ поля</label>
-                      <input
-                        v-model="f.key"
-                        placeholder="slug, title, description"
-                        class="form-input"
-                      />
+                      <input v-model="f.key" placeholder="slug, title, description" class="form-input" />
                     </div>
 
                     <div class="form-group compact">
@@ -395,31 +320,16 @@ const getFieldTypeLabel = (type) => {
 
                     <div v-if="f.type === 'select'" class="form-group compact">
                       <label>Опции списка</label>
-                      <input
-                        v-model="f.optionsText"
-                        placeholder="вариант1, вариант2, вариант3"
-                        class="form-input"
-                      />
+                      <input v-model="f.optionsText" placeholder="вариант1, вариант2, вариант3" class="form-input" />
                       <span class="field-hint">Перечислите через запятую</span>
                     </div>
                   </div>
                 </div>
 
                 <button class="add-field-btn" @click="addField(pIndex)">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 5v14m-7-7h14"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 5v14m-7-7h14" />
                   </svg>
                   Добавить поле
                 </button>
@@ -428,41 +338,19 @@ const getFieldTypeLabel = (type) => {
           </div>
 
           <button v-if="!props.entity" class="add-page-btn" @click="addPage">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 5v14m-7-7h14"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 5v14m-7-7h14" />
             </svg>
             Добавить страницу
           </button>
         </div>
 
         <div v-if="!props.entity" class="hint-box">
-          <svg
-            class="hint-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M12 13v2m0-8v.5m9 4a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-            />
+          <svg class="hint-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+            viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 13v2m0-8v.5m9 4a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <div class="hint-content">
             <strong>Как использовать:</strong>
@@ -479,21 +367,10 @@ const getFieldTypeLabel = (type) => {
           <span>Отмена</span>
         </button>
         <button class="btn primary" @click="save">
-          <svg
-            class="btn-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
+          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+            viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 13l4 4L19 7" />
           </svg>
           <span>Сохранить изменения</span>
         </button>
@@ -520,6 +397,7 @@ const getFieldTypeLabel = (type) => {
     opacity: 0;
     backdrop-filter: blur(0);
   }
+
   to {
     opacity: 1;
     backdrop-filter: blur(4px);
@@ -546,6 +424,7 @@ const getFieldTypeLabel = (type) => {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -940,12 +819,12 @@ const getFieldTypeLabel = (type) => {
   transition: all 0.2s ease;
 }
 
-.checkbox-field input:checked + .checkbox-custom {
+.checkbox-field input:checked+.checkbox-custom {
   background: #3b82f6;
   border-color: #3b82f6;
 }
 
-.checkbox-field input:checked + .checkbox-custom::after {
+.checkbox-field input:checked+.checkbox-custom::after {
   content: "✓";
   color: white;
   font-size: 12px;

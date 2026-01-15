@@ -22,26 +22,38 @@ const modelValueLocal = computed({
 
 
 <style scoped>
-
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 label {
   font-weight: 600;
-  font-size: 16px;
-  line-height: 18px;
-  color: #333;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
 }
 
-input,
-textarea,
-select {
-  background: #f1f1f1;
-  border: 1px solid #5f22c1;
-  padding: 5px;
-  min-height: 34px;
+.form-control {
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-control:hover {
+  border-color: #9ca3af;
 }
 </style>

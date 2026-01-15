@@ -3,36 +3,57 @@ import { useAppStore } from '@/stores/useAppStore'
 
 export function useApi() {
   const store = useAppStore()
-  const apiUrl = store.apiUrl
-  const user = store.user
-
-  const getAuthParams = () => {
-    return `&auth=${user.username}:${user.auth_key}`
-  }
+  const apiUrl = store.apiUrl || 'http://localhost:3000/'
 
   const get = async (endpoint, params = {}) => {
     try {
-      const url = `${apiUrl}${endpoint}${getAuthParams()}`
+      const url = `${apiUrl}${endpoint}`
       const queryString = new URLSearchParams(params).toString()
-      const fullUrl = queryString ? `${url}&${queryString}` : url
-      const response = await axios.get(fullUrl)
+      const fullUrl = queryString ? `${url}?${queryString}` : url
+      const response = await axios.get(fullUrl, { withCredentials: true })
       return response.data
     } catch (error) {
       console.error('API GET error:', error)
       throw error
     }
   }
-
   const post = async (endpoint, data = {}, config = {}) => {
     try {
-      const url = `${apiUrl}${endpoint}${getAuthParams()}`
+      const url = `${apiUrl}${endpoint}`
       const response = await axios.post(url, data, {
         headers: { 'Content-Type': 'application/json' },
+        withCredentials: true,
         ...config,
       })
       return response.data
     } catch (error) {
       console.error('API POST error:', error)
+      throw error
+    }
+  }
+
+  const patch = async (endpoint, data = {}, config = {}) => {
+    try {
+      const url = `${apiUrl}${endpoint}`
+      const response = await axios.patch(url, data, {
+        headers: { 'Content-Type': 'application/json' },
+        withCredentials: true,
+        ...config,
+      })
+      return response.data
+    } catch (error) {
+      console.error('API PATCH error:', error)
+      throw error
+    }
+  }
+
+  const del = async (endpoint, config = {}) => {
+    try {
+      const url = `${apiUrl}${endpoint}`
+      const response = await axios.delete(url, { withCredentials: true, ...config })
+      return response.data
+    } catch (error) {
+      console.error('API DELETE error:', error)
       throw error
     }
   }
@@ -44,9 +65,10 @@ export function useApi() {
       fd.append('folder', type === 'image' ? 'images/img' : 'documents')
       fd.append('filenamePrefix', type === 'image' ? 'img_' : 'doc_')
 
-      const url = `${apiUrl}upload${getAuthParams()}`
+      const url = `${apiUrl}upload`
       const response = await axios.post(url, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
       })
 
       const data = response.data
@@ -135,9 +157,32 @@ export function useApi() {
     return data.entities || []
   }
 
+  // CRUD methods for entities using slug
+  const getEntities = async (slug, params = {}) => {
+    return await get(slug, params)
+  }
+
+  const getEntity = async (slug, id) => {
+    return await get(`${slug}/${id}`)
+  }
+
+  const createEntity = async (slug, data) => {
+    return await post(slug, data)
+  }
+
+  const updateEntity = async (slug, id, data) => {
+    return await patch(`${slug}/${id}`, data)
+  }
+
+  const deleteEntityById = async (slug, id) => {
+    return await del(`${slug}/${id}`)
+  }
+
   return {
     get,
     post,
+    patch,
+    del,
     upload,
     getEntityList,
     getEntityById,
@@ -148,6 +193,10 @@ export function useApi() {
     updateEntityConfig,
     deleteEntityConfig,
     listEntityConfigs,
-    getAuthParams,
+    getEntities,
+    getEntity,
+    createEntity,
+    updateEntity,
+    deleteEntityById,
   }
 }

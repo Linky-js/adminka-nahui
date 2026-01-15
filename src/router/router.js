@@ -2,6 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
+    path: '/',
+    name: 'Login',
+    component: () => import('../pages/LoginPage.vue'),
+  },
+  {
     path: '/admin',
     name: 'AdminHome',
     component: () => import('../pages/AdminPage.vue'),
@@ -11,7 +16,6 @@ const routes = [
     name: 'AdminSettingsApi',
     component: () => import('../pages/AdminSettingsApi.vue'),
     props: true,
-
   },
   {
     path: '/admin/:entity',

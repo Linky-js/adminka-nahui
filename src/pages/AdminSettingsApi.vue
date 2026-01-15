@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted  } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useAppStore } from "@/stores/useAppStore";
 import { useEntityConfig } from "@/composables/useEntityConfig";
 import AdminLayout from "@/components/layouts/AdminLayout.vue";
@@ -12,10 +12,15 @@ const localApiDomain = ref(store.apiDomain);
 const localCharts = ref(store.charts);
 const showSettings = ref(false);
 const selectedEntity = ref(null);
+const showApiInfoModal = ref(false);
 
 function openSettings(entityKey) {
   selectedEntity.value = entityKey;
   showSettings.value = true;
+}
+
+function openApiInfoModal() {
+  showApiInfoModal.value = true;
 }
 
 const pages = ref([]);
@@ -64,7 +69,7 @@ function saveApiSettings() {
   store.setApiDomain(localApiDomain.value);
   store.setCharts(localCharts.value);
   console.log("localCharts.value:", localCharts.value);
-  
+
 }
 
 function addPage() {
@@ -102,14 +107,23 @@ const getChartTypeLabel = (type) => {
   };
   return labels[type] || type;
 };
+const removePage = (index) => {
+  const page = pages.value[index];
+  if (!page) return;
+  const newEntities = { ...store.entities };
+  delete newEntities[page.key];
+  store.setEntities(newEntities);
+};
 </script>
 <template>
   <AdminLayout>
     <div class="admin-settings">
       <div class="settings-header">
         <div class="header-content">
-          <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 13a8 8 0 0 1 7 7 6 6 0 0 0 3-5 9 9 0 0 0 6-8 3 3 0 0 0-3-3 9 9 0 0 0-8 6 6 6 0 0 0-5 3Zm0 0a9 9 0 0 1 9-9"/>
+          <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+            viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M4 13a8 8 0 0 1 7 7 6 6 0 0 0 3-5 9 9 0 0 0 6-8 3 3 0 0 0-3-3 9 9 0 0 0-8 6 6 6 0 0 0-5 3Zm0 0a9 9 0 0 1 9-9" />
           </svg>
           <div>
             <h1>Настройки API</h1>
@@ -123,8 +137,10 @@ const getChartTypeLabel = (type) => {
         <div class="settings-section">
           <div class="section-header">
             <div class="section-title">
-              <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+              <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
               </svg>
               <h2>API и Графики</h2>
             </div>
@@ -143,13 +159,13 @@ const getChartTypeLabel = (type) => {
                 <div class="input-group">
                   <div class="input-prefix">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v5m-3-3h6m-9-9V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4"/>
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M12 15v5m-3-3h6m-9-9V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4" />
                     </svg>
                   </div>
                   <input v-model="localApiUrl" placeholder="https://api.example.com/v1/" class="form-input" />
                 </div>
               </div>
-
               <div class="form-group">
                 <label class="form-label">
                   <span class="label-text">API DOMAIN</span>
@@ -158,7 +174,8 @@ const getChartTypeLabel = (type) => {
                 <div class="input-group">
                   <div class="input-prefix">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"/>
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9" />
                     </svg>
                   </div>
                   <input v-model="localApiDomain" placeholder="example.com" class="form-input" />
@@ -173,7 +190,8 @@ const getChartTypeLabel = (type) => {
               <h3 class="subsection-title">Графики метрик</h3>
               <button class="btn secondary small add-chart-header-btn" @click="addChart">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 5v14m-7-7h14" />
                 </svg>
                 Добавить график
               </button>
@@ -191,7 +209,8 @@ const getChartTypeLabel = (type) => {
                   </div>
                   <button class="btn danger small icon-only" @click="removeChart(index)" title="Удалить">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18M6 6l12 12"/>
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M18 6 6 18M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
@@ -200,6 +219,8 @@ const getChartTypeLabel = (type) => {
                   <div class="compact-form-row">
                     <div class="compact-form-group">
                       <label>API Method</label>
+                      <small class="compact-hint">Метод API, возвращающий массив объектов вида { y: 1, x: '08.05'
+                        }</small>
                       <input v-model="chart.apiMethod" placeholder="/metrics/..." class="compact-input" />
                     </div>
                     <div class="compact-form-group">
@@ -212,7 +233,7 @@ const getChartTypeLabel = (type) => {
                       </select>
                     </div>
                   </div>
-                  
+
                   <div class="compact-form-row">
                     <div class="compact-form-group">
                       <label>Период</label>
@@ -226,7 +247,7 @@ const getChartTypeLabel = (type) => {
                       </select>
                     </div>
                   </div>
-                  
+
                   <div class="compact-chart-options">
                     <label class="compact-switch">
                       <input type="checkbox" v-model="chart.showTooltip" />
@@ -239,12 +260,14 @@ const getChartTypeLabel = (type) => {
                       </div>
                       <div v-else-if="chart.type === 'line'" class="compact-preview-line">
                         <svg width="100%" height="100%" viewBox="0 0 60 20" preserveAspectRatio="none">
-                          <path d="M0,15 L15,12 L30,8 L45,10 L60,5" fill="none" stroke="currentColor" stroke-width="1.5" />
+                          <path d="M0,15 L15,12 L30,8 L45,10 L60,5" fill="none" stroke="currentColor"
+                            stroke-width="1.5" />
                         </svg>
                       </div>
                       <div v-else-if="chart.type === 'area'" class="compact-preview-area">
                         <svg width="100%" height="100%" viewBox="0 0 60 20" preserveAspectRatio="none">
-                          <path d="M0,15 L15,12 L30,8 L45,10 L60,5 L60,20 L0,20 Z" fill="currentColor" fill-opacity="0.2" />
+                          <path d="M0,15 L15,12 L30,8 L45,10 L60,5 L60,20 L0,20 Z" fill="currentColor"
+                            fill-opacity="0.2" />
                         </svg>
                       </div>
                       <div v-else-if="chart.type === 'scatter'" class="compact-preview-scatter">
@@ -259,7 +282,8 @@ const getChartTypeLabel = (type) => {
 
               <div v-if="localCharts.length === 0" class="no-charts-message">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v16a2 2 0 0 0 2 2h16m-9-9 3 3 6-6M6 10v7m4-7v4m4-4v1"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M3 3v16a2 2 0 0 0 2 2h16m-9-9 3 3 6-6M6 10v7m4-7v4m4-4v1" />
                 </svg>
                 <p>Нет добавленных графиков</p>
                 <button class="btn secondary small" @click="addChart">Добавить первый график</button>
@@ -269,9 +293,19 @@ const getChartTypeLabel = (type) => {
 
           <!-- Save Button at the bottom -->
           <div class="section-footer">
+            <button class="btn secondary" @click="openApiInfoModal">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Информация о API
+            </button>
             <button class="btn primary save-btn" @click="saveApiSettings">
-              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5 13l4 4L19 7" />
               </svg>
               Сохранить настройки API
             </button>
@@ -282,8 +316,10 @@ const getChartTypeLabel = (type) => {
         <div class="settings-section">
           <div class="section-header">
             <div class="section-title">
-              <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10"/>
+              <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10" />
               </svg>
               <h2>Управление сущностями</h2>
             </div>
@@ -297,7 +333,8 @@ const getChartTypeLabel = (type) => {
                   <div class="entity-info">
                     <div class="entity-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10"/>
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10" />
                       </svg>
                     </div>
                     <div class="entity-details">
@@ -310,13 +347,15 @@ const getChartTypeLabel = (type) => {
                   <div class="entity-actions">
                     <button class="btn secondary small" @click.stop="openSettings(page.key)">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 2-4 4-4-4M8 22l4-4 4 4M2 12h4m14 0h-4m-8-4V2v4m8 14v4v-4"/>
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="m16 2-4 4-4-4M8 22l4-4 4 4M2 12h4m14 0h-4m-8-4V2v4m8 14v4v-4" />
                       </svg>
                       Настроить
                     </button>
                     <button class="btn danger small icon-only" @click.stop="removePage(pIndex)" title="Удалить">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
                       </svg>
                     </button>
                   </div>
@@ -327,7 +366,8 @@ const getChartTypeLabel = (type) => {
             <div class="entities-actions">
               <button class="btn primary" @click="addPage">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-7-7h14"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 5v14m-7-7h14" />
                 </svg>
                 Добавить сущность
               </button>
@@ -338,6 +378,51 @@ const getChartTypeLabel = (type) => {
     </div>
   </AdminLayout>
   <SettingsModal v-if="showSettings" :entity="selectedEntity" @close="showSettings = false; selectedEntity = null" />
+
+  <!-- API Info Modal -->
+  <div v-if="showApiInfoModal" class="modal-overlay" @click="showApiInfoModal = false">
+    <div class="modal-content api-info-modal" @click.stop>
+      <div class="modal-header">
+        <h3>Требования к API бэкенда</h3>
+        <button class="modal-close" @click="showApiInfoModal = false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Админка ожидает, что бэкенд поддерживает стандартные REST API endpoints для CRUD операций над сущностями:</p>
+        <div class="api-endpoints">
+          <div class="endpoint-item">
+            <strong>Создание записи:</strong>
+            <code>POST {ApiUrl}/{slug}</code>
+            <p>Тело запроса: данные записи в JSON формате</p>
+          </div>
+          <div class="endpoint-item">
+            <strong>Обновление записи:</strong>
+            <code>PATCH {ApiUrl}/{slug}/{id}</code>
+            <p>Тело запроса: обновленные данные записи в JSON формате</p>
+          </div>
+          <div class="endpoint-item">
+            <strong>Удаление записи:</strong>
+            <code>DELETE {ApiUrl}/{slug}/{id}</code>
+          </div>
+          <div class="endpoint-item">
+            <strong>Получение всех записей:</strong>
+            <code>GET {ApiUrl}/{slug}</code>
+            <p>Может принимать query параметры для фильтрации/пагинации</p>
+          </div>
+          <div class="endpoint-item">
+            <strong>Получение одной записи:</strong>
+            <code>GET {ApiUrl}/{slug}/{id}</code>
+          </div>
+        </div>
+        <p><em>slug</em> - это ключ сущности, настроенный в админке.</p>
+        <p>Бэкенд должен возвращать данные в формате, понятном админке (обычно JSON с полями сущности).</p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -636,6 +721,12 @@ const getChartTypeLabel = (type) => {
   color: #64748b;
 }
 
+.compact-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
 .compact-input,
 .compact-select {
   width: 100%;
@@ -706,11 +797,11 @@ const getChartTypeLabel = (type) => {
   transition: all 0.2s ease;
 }
 
-.compact-switch input:checked + .compact-switch-slider {
+.compact-switch input:checked+.compact-switch-slider {
   background: #10b981;
 }
 
-.compact-switch input:checked + .compact-switch-slider::before {
+.compact-switch input:checked+.compact-switch-slider::before {
   transform: translateX(18px);
 }
 
@@ -803,22 +894,7 @@ const getChartTypeLabel = (type) => {
   text-align: center;
 }
 
-/* Save Button */
-.save-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  padding: 14px 28px;
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
-  min-width: 200px;
-}
 
-.save-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-}
 
 /* Entities Section */
 .entities-container {
@@ -909,74 +985,6 @@ const getChartTypeLabel = (type) => {
   align-items: center;
 }
 
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  min-height: 40px;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn.small {
-  padding: 6px 12px;
-  font-size: 12px;
-  min-height: 32px;
-}
-
-.btn.icon-only {
-  width: 32px;
-  padding: 0;
-  min-height: 32px;
-}
-
-.btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
-}
-
-.btn.primary:hover {
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-}
-
-.btn.secondary {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.btn.secondary:hover {
-  background: #e2e8f0;
-}
-
-.btn.danger {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.btn.danger:hover {
-  background: #fecaca;
-}
-
-.btn-icon {
-  flex-shrink: 0;
-}
 
 /* Entities Actions */
 .entities-actions {
@@ -997,43 +1005,43 @@ const getChartTypeLabel = (type) => {
   .admin-settings {
     padding: 16px;
   }
-  
+
   .settings-header {
     padding: 24px;
     margin-bottom: 24px;
   }
-  
+
   .settings-section {
     padding: 24px;
   }
-  
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .settings-grid.compact {
     grid-template-columns: 1fr;
   }
-  
+
   .compact-form-row {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-  
+
   .entity-card-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .charts-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .add-chart-header-btn {
     align-self: flex-start;
   }
@@ -1045,19 +1053,111 @@ const getChartTypeLabel = (type) => {
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .compact-chart-preview {
     align-self: flex-end;
   }
-  
+
   .entities-actions {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  
+
   .entities-actions .btn {
     width: 100%;
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.api-endpoints {
+  margin: 16px 0;
+}
+
+.endpoint-item {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #6366f1;
+}
+
+.endpoint-item strong {
+  display: block;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.endpoint-item code {
+  display: block;
+  background: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Consolas', monospace;
+  color: #334155;
+  margin: 4px 0;
+}
+
+.endpoint-item p {
+  margin: 4px 0 0 0;
+  color: #64748b;
+  font-size: 14px;
 }
 </style>

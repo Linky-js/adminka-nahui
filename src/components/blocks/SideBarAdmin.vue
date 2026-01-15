@@ -123,10 +123,10 @@ onMounted(() => {
   startAnimation()
 })
 
-function goToSettingsApi(){
+function goToSettingsApi() {
   router.push('/admin/settings-api')
 }
-function goToAdmin(){
+function goToAdmin() {
   router.push('/admin')
 }
 </script>
@@ -215,11 +215,14 @@ function goToAdmin(){
   gap: 14px;
   width: 100%;
 }
-.logo{cursor: pointer;}
+
+.logo {
+  cursor: pointer;
+}
 
 .head-text {
   color: #fff;
-  font-family: Onest;
+  font-family: Arial;
   font-size: 16px;
   font-style: normal;
   font-weight: 700;
@@ -236,7 +239,7 @@ function goToAdmin(){
 .acc__link {
   position: relative;
   color: #fff;
-  font-family: Onest;
+  font-family: Arial;
   font-size: 16px;
   font-style: normal;
   font-weight: 700;

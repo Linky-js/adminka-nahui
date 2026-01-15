@@ -13,91 +13,26 @@ const props = defineProps({
 const emit = defineEmits(['goToCategory'])
 const router = useRouter()
 const store = useAppStore()
-const { getEntityList, deleteEntity } = useApi()
+const { getEntities, deleteEntityById } = useApi()
 
 const searchQuery = ref('')
 const sortBy = ref('idDesc')
 const categories = ref([])
 
-const user = store.user
-const apiUrl = store.apiUrl
-const apiDomain = store.apiDomain
-
 const filteredCategories = computed(() => {
-  let filtered = []
-  if (categories.value?.categories) {
-    filtered = categories.value.categories.filter((category) =>
-      category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.news) {
-    filtered = categories.value.news.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.podcasts) {
-    filtered = categories.value.podcasts.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.themes) {
-    filtered = categories.value.themes.filter((category) =>
-      category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.videos) {
-    filtered = categories.value.videos.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.books) {
-    filtered = categories.value.books.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.materials) {
-    filtered = categories.value.materials.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.notifies) {
-    filtered = categories.value.notifies.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.tests) {
-    filtered = categories.value.tests.filter((category) =>
-      category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.bloggers) {
-    filtered = categories.value.bloggers.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.object_categories) {
-    filtered = categories.value.object_categories.filter((category) =>
-      category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.objects) {
-    filtered = categories.value.objects.filter((category) =>
-      category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
-  if (categories.value?.video_banners) {
-    filtered = categories.value.video_banners.filter((category) =>
-      category.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  }
+  if (!Array.isArray(categories.value)) return [];
+  let filtered = categories.value.filter((category) => {
+    const name = category.name || category.title || '';
+    return name.toLowerCase().includes(searchQuery.value.toLowerCase());
+  });
   if (sortBy.value === 'idAsc') {
     return filtered.sort((a, b) => a.id - b.id)
   } else if (sortBy.value === 'idDesc') {
     return filtered.sort((a, b) => b.id - a.id)
   } else if (sortBy.value === 'nameAsc') {
-    return filtered.sort((a, b) => a.name.localeCompare(b.name))
+    return filtered.sort((a, b) => (a.name || a.title || '').localeCompare(b.name || b.title || ''))
   } else if (sortBy.value === 'nameDesc') {
-    return filtered.sort((a, b) => b.name.localeCompare(a.name))
+    return filtered.sort((a, b) => (b.name || b.title || '').localeCompare(a.name || a.title || ''))
   }
   return filtered
 })
@@ -131,7 +66,7 @@ function editCategory(category) {
 async function deleteCategory(id) {
   if (confirm('Вы уверены, что хотите удалить этот элемент?')) {
     try {
-      await deleteEntity(props.propsPage, id)
+      await deleteEntityById('entities/' + props.propsPage, id)
       getContent()
     } catch (error) {
       console.error('Ошибка при удалении категории:', error)
@@ -143,10 +78,11 @@ async function deleteCategory(id) {
 
 async function getContent() {
   try {
-    const data = await getEntityList(props.propsPage)
-    categories.value = data
+    const data = await getEntities('entities/' + props.propsPage)
+    categories.value = Array.isArray(data) ? data : []
   } catch (error) {
     console.error('Ошибка при загрузке данных:', error)
+    categories.value = []
   }
 }
 
@@ -170,20 +106,22 @@ watch(() => props.propsPage, () => getContent())
 
     <!-- Поиск и фильтры -->
     <div class="categories__filters">
-      <input v-model="searchQuery" type="text" placeholder="Поиск категории..." />
+      <input v-model="searchQuery" type="text" placeholder="Поиск..." />
 
-      <button class="btn-white filteres" @click="sortByF($event, 'idAsc')">
-        ID ↑
-      </button>
-      <button class="btn-white filteres" @click="sortByF($event, 'idDesc')">
-        ID ↓
-      </button>
-      <button class="btn-white filteres" @click="sortByF($event, 'nameAsc')">
-        Имя A-Z
-      </button>
-      <button class="btn-white filteres" @click="sortByF($event, 'nameDesc')">
-        Имя Z-A
-      </button>
+      <div class="sort-buttons">
+        <button class="sort-btn" @click="sortByF($event, 'idAsc')">
+          ID ↑
+        </button>
+        <button class="sort-btn" @click="sortByF($event, 'idDesc')">
+          ID ↓
+        </button>
+        <button class="sort-btn" @click="sortByF($event, 'nameAsc')">
+          Имя A-Z
+        </button>
+        <button class="sort-btn" @click="sortByF($event, 'nameDesc')">
+          Имя Z-A
+        </button>
+      </div>
     </div>
 
     <!-- Таблица категорий -->
@@ -227,78 +165,153 @@ watch(() => props.propsPage, () => getContent())
 
 
 <style scoped>
-.categories__actions {
-  margin-bottom: 20px;
+.categories {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.categories__filters {
-  margin-bottom: 15px;
+.categories__actions {
+  margin-bottom: 24px;
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
   align-items: center;
 }
 
-input[type="text"] {
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+.categories__filters {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.categories__filters input[type="text"] {
+  padding: 12px 16px;
+  font-size: 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  transition: all 0.2s ease;
+  min-width: 250px;
+}
+
+.categories__filters input[type="text"]:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 th,
 td {
-  padding: 12px 15px;
+  padding: 16px 20px;
   text-align: left;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 th {
-  background-color: #f1f1f1;
-  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 td {
-  border-bottom: 1px solid #ddd;
+  color: #374151;
+  font-size: 14px;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background: #f8fafc;
 }
 
 .category-name {
   cursor: pointer;
-  color: #5f22c1;
-  text-decoration: underline;
+  color: #6366f1;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
-.btn-danger {
-  background-color: #e90037;
-  color: white;
+.category-name:hover {
+  color: #4f46e5;
 }
 
 .btn-white {
-  color: #5f22c1;
-  text-align: center;
-  font-family: "Proxima Nova";
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 18px;
-  /* 112.5% */
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #f1f1f1;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
   border-radius: 10px;
-  width: max-content;
-  padding: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-white:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-danger:hover {
+  background: #fecaca;
 }
 
 .table-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.sort-btn.active {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
 }
 </style>

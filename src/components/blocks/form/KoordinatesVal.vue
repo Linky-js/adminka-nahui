@@ -65,41 +65,41 @@ onMounted(() => {
 <template>
   <div class="form-group">
     <label>Координаты</label>
-    <input
-      type="text"
-      :value="lat"
-      @input="emit('update:lat', $event.target.value)"
-      placeholder="Широта (lat)"
-    />
-    <input
-      type="text"
-      :value="lon"
-      @input="emit('update:lon', $event.target.value)"
-      placeholder="Долгота (lon)"
-    />
+    <input type="text" :value="lat" @input="emit('update:lat', $event.target.value)" placeholder="Широта (lat)" />
+    <input type="text" :value="lon" @input="emit('update:lon', $event.target.value)" placeholder="Долгота (lon)" />
   </div>
 </template>
 <style scoped>
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 label {
   font-weight: 600;
-  font-size: 16px;
-  line-height: 18px;
-  color: #333;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
 }
 
-input,
-textarea,
-select {
-  background: #f1f1f1;
-  border: 1px solid #5f22c1;
-  padding: 5px;
-  min-height: 34px;
+input {
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
 }
 
+input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+input:hover {
+  border-color: #9ca3af;
+}
 </style>

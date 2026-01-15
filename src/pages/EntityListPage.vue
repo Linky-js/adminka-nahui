@@ -11,7 +11,7 @@ const entity = route.params.entity;
 <template>
   <div class="wrapper">
     <AdminLayout>
-      <ListsBlock :propsPage="entity" :type="null" />
+      <ListsBlock :propsPage="entity" :type="null" :key="entity" />
     </AdminLayout>
   </div>
 </template>

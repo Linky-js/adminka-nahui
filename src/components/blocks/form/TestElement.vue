@@ -80,33 +80,17 @@ onMounted(() => {
       <textarea v-model="testData.description"></textarea>
     </div>
 
-    <div
-      v-for="(question, qIndex) in testData.questions"
-      :key="qIndex"
-      class="question"
-    >
+    <div v-for="(question, qIndex) in testData.questions" :key="qIndex" class="question">
       <div class="form-group">
         <h3>Вопрос {{ qIndex + 1 }}</h3>
-        <input
-          v-model="question.question"
-          type="text"
-          placeholder="Введите вопрос"
-        />
+        <input v-model="question.question" type="text" placeholder="Введите вопрос" />
       </div>
 
-      <div
-        v-for="(answer, aIndex) in question.answers"
-        :key="aIndex"
-        class="answer"
-      >
+      <div v-for="(answer, aIndex) in question.answers" :key="aIndex" class="answer">
         <div class="form-group-wrap">
           <div class="form-group">
             <h4>Вариант ответа {{ aIndex + 1 }}</h4>
-            <input
-              v-model="answer.text"
-              type="text"
-              placeholder="Вариант ответа"
-            />
+            <input v-model="answer.text" type="text" placeholder="Вариант ответа" />
           </div>
           <div class="form-group">
             <label>Баллы:</label>
@@ -131,57 +115,84 @@ onMounted(() => {
   </div>
 </template>
 
-  
-  <style scoped>
+
+<style scoped>
 .form-group-wrap {
   display: flex;
   gap: 20px;
   justify-content: space-between;
 }
+
 .form-group-wrap .form-group {
   width: 100%;
 }
+
 .test {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
+
 .question {
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
+
 .answer {
   margin-left: 20px;
 }
+
 #fileNews {
   display: none;
 }
+
 .content-editor {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
+
 label {
   font-weight: 600;
-  font-size: 16px;
-  line-height: 18px;
-  color: #333;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
 }
+
 input,
 textarea,
 select {
-  background: #f1f1f1;
-  border: 1px solid #5f22c1;
-  padding: 5px;
-  min-height: 34px;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
 }
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: #9ca3af;
+}
+
 /* Basic editor styles */
 .tiptap:first-child {
   margin-top: 0;
@@ -197,10 +208,12 @@ select {
 .ProseMirror-selectednode {
   outline: 3px solid var(--purple);
 }
+
 .button-group {
   display: flex;
   gap: 10px;
 }
+
 .button-group button,
 .button-group label {
   border: none;
@@ -212,9 +225,11 @@ select {
   cursor: pointer;
   transition: 0.3s;
 }
+
 .button-group button.is-active {
   background: #5f22c16c;
 }
+
 .tiltapContainer {
   display: flex;
   flex-direction: column;
@@ -222,4 +237,3 @@ select {
   width: 100%;
 }
 </style>
-  

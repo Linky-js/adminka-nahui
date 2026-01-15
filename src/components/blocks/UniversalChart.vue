@@ -40,16 +40,16 @@ const chartData = ref([])
 
 // Временные захардкоженные данные
 const hardcodedData = [
-    { x: 1, y: '08.05' },
-    { x: 2, y: '09.05' },
-    { x: 3, y: '10.05' },
-    { x: 4, y: '11.05' },
-    { x: 5, y: '12.05' },
-    { x: 6, y: '13.05' },
-    { x: 7, y: '14.05' },
-    { x: 8, y: '15.05' },
-    { x: 9, y: '16.05' },
-    { x: 10, y: '17.05' }
+    { y: 1, x: '08.05' },
+    { y: 2, x: '09.05' },
+    { y: 3, x: '10.05' },
+    { y: 4, x: '11.05' },
+    { y: 5, x: '12.05' },
+    { y: 6, x: '13.05' },
+    { y: 7, x: '14.05' },
+    { y: 8, x: '15.05' },
+    { y: 9, x: '16.05' },
+    { y: 10, x: '17.05' }
 ]
 
 onMounted(async () => {
@@ -81,8 +81,8 @@ const chartOption = computed(() => {
     const showTooltip = props.config.showTooltip !== false
     const reversed = props.config.orientation === 'rtl'
 
-    const xData = data.map(item => item.y)
-    const yData = data.map(item => item.x)
+    const xData = data.map(item => item.x)
+    const yData = data.map(item => item.y)
 
     let seriesType
     switch (type) {

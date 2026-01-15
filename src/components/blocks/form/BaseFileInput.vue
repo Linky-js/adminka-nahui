@@ -77,106 +77,114 @@ const dragLeave = () => (isDragActive.value = false)
 
 
 <style scoped>
-.single-file {
-  position: relative;
-  width: max-content;
-  padding: 10px;
-}
-
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 label {
   font-weight: 600;
-  font-size: 16px;
-  line-height: 18px;
-  color: #333;
-}
-
-input,
-textarea,
-select {
-  background: #f1f1f1;
-  border: 1px solid #5f22c1;
-  padding: 5px;
-  min-height: 34px;
-}
-
-label {
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 18px;
-  color: #333;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
 }
 
 .btn-white {
-  text-align: center;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px;
-  /* 112.5% */
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #f1f1f1;
-  border-radius: 8px;
-  width: max-content;
-  padding: 8px 20px;
-  border: 1px solid #000;
-  transition: all 0.5s ease-in-out;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  color: #374151;
   cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
 }
 
 .btn-white:hover {
-  background-color: #464649;
-  color: #fff;
+  background: #f9fafb;
+  border-color: #9ca3af;
 }
 
 .drop-zone {
-  border: 2px dashed #ccc;
-  padding: 10px;
-  margin-top: 20px;
-  min-height: 200px;
-  font-size: 14px;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px 20px;
+  background: #fafafa;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.drop-zone:hover {
+  border-color: #6366f1;
+  background: #f0f4ff;
 }
 
 .drag-active {
-  border-color: #42b883;
-  background-color: rgba(66, 184, 131, 0.1);
+  border-color: #6366f1;
+  background: #f0f4ff;
 }
 
-.image-item {
-  position: relative;
-  display: inline-block;
-  margin: 5px;
+.drop-zone p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
 }
 
-.image-item img {
-  width: 175px;
-  height: 175px;
-  object-fit: cover;
-  cursor: pointer;
+.single-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.single-file p {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
 }
 
 .remove-btn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgb(233 17 17);
+  background: #ef4444;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: background 0.2s ease;
 }
 
-.single-image {
-  position: relative;
+.remove-btn:hover {
+  background: #dc2626;
+}
+
+.link {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 14px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.link:hover {
+  text-decoration: underline;
 }
 </style>

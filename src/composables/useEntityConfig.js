@@ -1,83 +1,48 @@
-import axios from 'axios'
-
-const ENTITY_CONFIG_URL = 'https://muz.dmgug.ru/test/SaveEntities.php'
+import { useApi } from './useApi'
 
 export function useEntityConfig() {
+  const api = useApi()
+
   const listEntities = async () => {
-    try {
-      const response = await axios.get(`${ENTITY_CONFIG_URL}?action=list`)
-      console.log('RESPONSE: ', response);
-      
-      return response.data.entities || {}
-    } catch (error) {
-      console.error('Failed to list entities:', error)
-      return {}
-    }
+    const response = await api.get('config', { action: 'list' })
+    return response.entities || {}
   }
 
   const getEntity = async (entity) => {
-    try {
-      const response = await axios.get(`${ENTITY_CONFIG_URL}?action=get&entity=${entity}`)
-      return response.data.config || null
-    } catch (error) {
-      console.error('Failed to get entity:', error)
-      return null
-    }
+    const response = await api.get('config', {
+      action: 'get',
+      entity,
+    })
+    return response.config || null
   }
 
   const createEntity = async (entity, config) => {
-    try {
-      const response = await axios.post(`${ENTITY_CONFIG_URL}?action=create&entity=${entity}`, {
-        config,
-      })
-      return response.data
-    } catch (error) {
-      console.error('Failed to create entity:', error)
-      throw error
-    }
+    return await api.post('config?action=create&entity=' + entity, {
+      config,
+    })
   }
 
   const updateEntity = async (entity, config) => {
-    try {
-      const response = await axios.post(`${ENTITY_CONFIG_URL}?action=update&entity=${entity}`, {
-        config,
-      })
-      return response.data
-    } catch (error) {
-      console.error('Failed to update entity:', error)
-      throw error
-    }
+    return await api.post('config?action=update&entity=' + entity, {
+      config,
+    })
   }
 
   const deleteEntity = async (entity) => {
-    try {
-      const response = await axios.post(`${ENTITY_CONFIG_URL}?action=delete&entity=${entity}`)
-      return response.data
-    } catch (error) {
-      console.error('Failed to delete entity:', error)
-      throw error
-    }
+    return await api.post('config?action=delete&entity=' + entity)
   }
 
   const saveSettings = async (settings) => {
-    try {
-      const response = await axios.post(`${ENTITY_CONFIG_URL}?action=save_settings`, settings)
-      return response.data
-    } catch (error) {
-      console.error('Failed to save settings:', error)
-      throw error
-    }
+    return await api.post('config?action=save_settings', settings)
   }
 
   const loadSettings = async () => {
-    try {
-      const response = await axios.get(`${ENTITY_CONFIG_URL}?action=load_settings`)
-      return response.data.settings || {}
-    } catch (error) {
-      console.error('Failed to load settings:', error)
-      return {}
-    }
+    const response = await api.get('config', {
+      action: 'load_settings',
+    })
+    return response.settings || {}
   }
+
   return {
     listEntities,
     getEntity,

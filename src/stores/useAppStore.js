@@ -6,7 +6,7 @@ const STORAGE_KEY = 'app_settings'
 export const useAppStore = defineStore('app', {
   state: () => ({
     user: { username: 'guest', auth_key: '' },
-    apiUrl: '',
+    apiUrl: 'http://localhost:3000/',
     apiDomain: '',
     charts: [],
     entities: {},

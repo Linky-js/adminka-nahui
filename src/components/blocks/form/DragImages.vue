@@ -51,14 +51,14 @@ watch(
   images,
   (newImages) => {
     skipNextUpdate.value = true
-   
-    
+
+
     if (!props.multiple) {
       emit('update:modelValue', newImages[0] || null)
     } else {
       emit('update:modelValue', [...newImages])
       console.log('props.mult', props.multiple);
-      
+
     }
   },
   { deep: true }
@@ -118,31 +118,14 @@ const dragLeave = () => (isDragActive.value = false)
       {{ multiple ? 'Добавить изображения ' : 'Выбрать изображение' }}
     </button>
     Multiple: {{ multiple }}
-    <input
-      type="file"
-      ref="fileInput"
-      :multiple="multiple"
-      accept="image/*"
-      @change="handleFileUpload"
-      style="display: none"
-    />
+    <input type="file" ref="fileInput" :multiple="multiple" accept="image/*" @change="handleFileUpload"
+      style="display: none" />
 
-    <div
-      class="drop-zone"
-      @dragover.prevent="dragOver"
-      @drop="handleDrop"
-      @dragenter="dragEnter"
-      @dragleave="dragLeave"
-      :class="{ 'drag-active': isDragActive }"
-    >
+    <div class="drop-zone" @dragover.prevent="dragOver" @drop="handleDrop" @dragenter="dragEnter" @dragleave="dragLeave"
+      :class="{ 'drag-active': isDragActive }">
       <!-- Множественный режим -->
-      <vuedraggable
-        v-if="multiple && images.length > 0"
-        v-model="images"
-        item-key="id"
-        @start="drag = true"
-        @end="drag = false"
-      >
+      <vuedraggable v-if="multiple && images.length > 0" v-model="images" item-key="id" @start="drag = true"
+        @end="drag = false">
         <template #item="{ element }">
           <div class="image-item">
             <img :src="element.dataurl || apiDomain + 'web/uploads/' + (element?.url?.img || element?.url)" alt="" />
@@ -150,7 +133,7 @@ const dragLeave = () => (isDragActive.value = false)
           </div>
         </template>
       </vuedraggable>
-      
+
       <div v-else-if="!multiple && images[0]" class="single-image">
         <img :src="images[0]?.dataurl || apiDomain + 'web/uploads/' + images[0]?.url" alt="" />
         <button @click="removeImage(images[0])" class="remove-btn">×</button>
@@ -163,74 +146,136 @@ const dragLeave = () => (isDragActive.value = false)
 </template>
 
 <style scoped>
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
 label {
   font-weight: 600;
-  font-size: 16px;
-  line-height: 18px;
-  color: #333;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
 }
+
 .btn-white {
-  text-align: center;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px; /* 112.5% */
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #f1f1f1;
-  border-radius: 8px;
-  width: max-content;
-  padding: 8px 20px;
-  border: 1px solid #000;
-  transition: all 0.5s ease-in-out;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  color: #374151;
   cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
 }
+
 .btn-white:hover {
-    background-color: #464649;
-    color: #fff;
-  }
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
 
 .drop-zone {
-  border: 2px dashed #ccc;
-  padding: 10px;
-  margin-top: 20px;
-  min-height: 200px;
-  font-size: 14px;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px 20px;
+  background: #fafafa;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.drop-zone:hover {
+  border-color: #6366f1;
+  background: #f0f4ff;
 }
 
 .drag-active {
-  border-color: #42b883;
-  background-color: rgba(66, 184, 131, 0.1);
+  border-color: #6366f1;
+  background: #f0f4ff;
+}
+
+.drop-zone p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .image-item {
   position: relative;
   display: inline-block;
-  margin: 5px;
+  margin: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 .image-item img {
-  width: 175px;
-  height: 175px;
+  width: 150px;
+  height: 150px;
   object-fit: cover;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.image-item:hover img {
+  transform: scale(1.05);
 }
 
 .remove-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgb(233 17 17);
+  top: 8px;
+  right: 8px;
+  background: #ef4444;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background 0.2s ease;
 }
-.single-image{
+
+.remove-btn:hover {
+  background: #dc2626;
+}
+
+.single-image {
   position: relative;
+  display: inline-block;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.single-image img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+}
+
+.link {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 14px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.link:hover {
+  text-decoration: underline;
 }
 </style>
