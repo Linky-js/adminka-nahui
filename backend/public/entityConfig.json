@@ -1,0 +1,129 @@
+{
+  "home": {
+    "label": "Главная Страница",
+    "fields": [
+      {
+        "type": "input",
+        "key": "title",
+        "label": "Заголовок",
+        "sourceKey": "title",
+        "targetKey": "title"
+      },
+      {
+        "type": "textarea",
+        "key": "description",
+        "label": "Описание",
+        "sourceKey": "description",
+        "targetKey": "description"
+      }
+    ]
+  },
+  "projects": {
+    "label": "Проекты",
+    "fields": [
+      {
+        "type": "input",
+        "key": "title",
+        "label": "Наименование",
+        "sourceKey": "title",
+        "targetKey": "title"
+      },
+      {
+        "type": "input",
+        "key": "date",
+        "label": "Дата",
+        "sourceKey": "link",
+        "targetKey": "link"
+      },
+      {
+        "type": "images",
+        "key": "image",
+        "label": "Картинка",
+        "sourceKey": "image",
+        "targetKey": "image"
+      },
+      {
+        "type": "input",
+        "key": "location",
+        "label": "Location:",
+        "sourceKey": "location",
+        "targetKey": "location"
+      },
+      {
+        "type": "input",
+        "key": "venue",
+        "label": "Venue",
+        "sourceKey": "venue",
+        "targetKey": "venue"
+      },
+      {
+        "type": "input",
+        "key": "title1",
+        "label": "Второй блок, заголовок 1",
+        "sourceKey": "title1",
+        "targetKey": "title1"
+      },
+      {
+        "type": "textarea",
+        "key": "description1",
+        "label": "Второй блок Описание 1",
+        "sourceKey": "description1",
+        "targetKey": "description1"
+      },
+      {
+        "type": "input",
+        "key": "title2",
+        "label": "Второй блок, заголовок 2",
+        "sourceKey": "title2",
+        "targetKey": "title2"
+      },
+      {
+        "type": "textarea",
+        "key": "description2",
+        "label": "Второй блок Описание 2",
+        "sourceKey": "description2",
+        "targetKey": "description2"
+      },
+      {
+        "type": "repeater",
+        "key": "repeater",
+        "label": "Повторитель",
+        "sourceKey": "repeater",
+        "targetKey": "repeater",
+        "fields": [
+          {
+            "type": "input",
+            "key": "head",
+            "label": "Заголвоок"
+          },
+          {
+            "type": "textarea",
+            "key": "descr",
+            "label": "Описание"
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "key": "whoistitle",
+        "label": "Заголовок",
+        "sourceKey": "whoistitle",
+        "targetKey": "whoistitle"
+      },
+      {
+        "type": "textarea",
+        "key": "descrwhois",
+        "label": "Описание",
+        "sourceKey": "descrwhois",
+        "targetKey": "descrwhois"
+      },
+      {
+        "type": "images",
+        "key": "gallery",
+        "label": "Галерея",
+        "sourceKey": "gallery",
+        "targetKey": "gallery"
+      }
+    ]
+  }
+}

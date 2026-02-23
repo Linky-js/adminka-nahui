@@ -3,200 +3,150 @@ import { useAppStore } from '@/stores/useAppStore'
 
 export function useApi() {
   const store = useAppStore()
-  const apiUrl = store.apiUrl || 'http://localhost:3000/'
+  const apiUrl = '/admin/api/'
+
+  /* ================== BASE ================== */
 
   const get = async (endpoint, params = {}) => {
-    try {
-      const url = `${apiUrl}${endpoint}`
-      const queryString = new URLSearchParams(params).toString()
-      const fullUrl = queryString ? `${url}?${queryString}` : url
-      const response = await axios.get(fullUrl, { withCredentials: true })
-      return response.data
-    } catch (error) {
-      console.error('API GET error:', error)
-      throw error
-    }
-  }
-  const post = async (endpoint, data = {}, config = {}) => {
-    try {
-      const url = `${apiUrl}${endpoint}`
-      const response = await axios.post(url, data, {
-        headers: { 'Content-Type': 'application/json' },
-        withCredentials: true,
-        ...config,
-      })
-      return response.data
-    } catch (error) {
-      console.error('API POST error:', error)
-      throw error
-    }
+    const response = await axios.get(`${apiUrl}${endpoint}`, {
+      params,
+      withCredentials: true,
+    })
+    return response.data
   }
 
-  const patch = async (endpoint, data = {}, config = {}) => {
-    try {
-      const url = `${apiUrl}${endpoint}`
-      const response = await axios.patch(url, data, {
-        headers: { 'Content-Type': 'application/json' },
-        withCredentials: true,
-        ...config,
-      })
-      return response.data
-    } catch (error) {
-      console.error('API PATCH error:', error)
-      throw error
-    }
+  const post = async (endpoint, data = {}, config = {}) => {
+    const response = await axios.post(`${apiUrl}${endpoint}`, data, {
+      withCredentials: true,
+      ...config,
+    })
+    return response.data
+  }
+
+  const put = async (endpoint, data = {}, config = {}) => {
+    const response = await axios.put(`${apiUrl}${endpoint}`, data, {
+      withCredentials: true,
+      ...config,
+    })
+    return response.data
   }
 
   const del = async (endpoint, config = {}) => {
-    try {
-      const url = `${apiUrl}${endpoint}`
-      const response = await axios.delete(url, { withCredentials: true, ...config })
-      return response.data
-    } catch (error) {
-      console.error('API DELETE error:', error)
-      throw error
-    }
+    const response = await axios.delete(`${apiUrl}${endpoint}`, {
+      withCredentials: true,
+      ...config,
+    })
+    return response.data
   }
 
-  const upload = async (file, type = 'file') => {
-    try {
-      const fd = new FormData()
-      fd.append('UploadForm[file]', file)
-      fd.append('folder', type === 'image' ? 'images/img' : 'documents')
-      fd.append('filenamePrefix', type === 'image' ? 'img_' : 'doc_')
+  /* ================== UPLOAD ================== */
 
-      const url = `${apiUrl}upload`
-      const response = await axios.post(url, fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
-      })
+  const upload = async (file) => {
+    const fd = new FormData()
+    fd.append('file', file)
 
-      const data = response.data
-      if (!data) return null
-      return data.path || data.url || data.file || data
-    } catch (error) {
-      console.error('Upload error:', error)
-      throw error
-    }
+    const response = await axios.post(`${apiUrl}upload`, fd, {
+      withCredentials: true,
+    })
+
+    return response.data?.file?.path || null
   }
 
-  const getEntityList = async (entity, params = {}) => {
-    let endpoint = ''
-    if (entity.includes('1category')) {
-      endpoint = `api-${entity.slice(0, -9)}-category/get-list`
-    } else if (entity.includes('1banner')) {
-      endpoint = `api-${entity.slice(0, -7)}-banner/get-list`
-    } else {
-      endpoint = `api-${entity}/get-admin-list`
-    }
-    return await get(endpoint, params)
+  /* ================== CONFIG (ENTITIES CONFIG) ================== */
+
+  const listEntityConfigs = async () => {
+    const data = await get('config', { action: 'list' })
+    return data.entities || {}
   }
 
-  const getEntityById = async (entity, id) => {
-    let endpoint = ''
-    if (entity.includes('1category')) {
-      endpoint = `api-${entity.slice(0, -9)}-category/get-list`
-    } else if (entity.includes('1banner')) {
-      endpoint = `api-${entity.slice(0, -7)}-banner/get-list`
-    } else {
-      endpoint = `api-${entity}/get-admin-list`
-    }
-    const data = await get(endpoint, { id })
-    return data[entity] && data[entity].length > 0 ? data[entity][0] : null
-  }
-
-  const saveEntity = async (entity, data, isUpdate = false) => {
-    let link = ''
-    if (entity.includes('1category')) {
-      link = entity.slice(0, -9) + '-category'
-    } else {
-      link = entity
-      if (entity.includes('1banner')) {
-        link = entity.slice(0, -7) + '-banner'
-      }
-    }
-
-    const endpoint = `api-${link}/${isUpdate ? 'update' : 'set'}`
-    return await post(endpoint, data)
-  }
-
-  const deleteEntity = async (entity, id) => {
-    let link = ''
-    if (entity.includes('1category')) {
-      link = entity.slice(0, -9) + '-category'
-    } else {
-      link = entity
-      if (entity.includes('1banner')) {
-        link = entity.slice(0, -7) + '-banner'
-      }
-    }
-
-    const endpoint = `api-${link}/del`
-    return await post(endpoint, { id })
-  }
-
-  const getEntityConfig = async (entityName) => {
-    const data = await get(`SaveEntities.php?action=get&entity=${entityName}`)
+  const getEntityConfig = async (entity) => {
+    const data = await get('config', {
+      action: 'get',
+      entity,
+    })
     return data.config || null
   }
 
-  const saveEntityConfig = async (entityName, config) => {
-    return await post(`SaveEntities.php?action=create&entity=${entityName}`, { config })
+  const createEntityConfig = async (entity, config) => {
+    return await post(`config?action=create&entity=${entity}`, { config })
   }
 
-  const updateEntityConfig = async (entityName, config) => {
-    return await post(`SaveEntities.php?action=update&entity=${entityName}`, { config })
+  const updateEntityConfig = async (entity, config) => {
+    return await post(`config?action=update&entity=${entity}`, { config })
   }
 
-  const deleteEntityConfig = async (entityName) => {
-    return await post(`SaveEntities.php?action=delete&entity=${entityName}`, {})
+  const deleteEntityConfig = async (entity) => {
+    return await post(`config?action=delete&entity=${entity}`)
   }
 
-  const listEntityConfigs = async () => {
-    const data = await get('SaveEntities.php?action=list')
-    return data.entities || []
+  /* ================== ENTITIES CRUD ================== */
+
+  const getEntities = async (entity) => {
+    return await get(`entities/${entity}`)
   }
 
-  // CRUD methods for entities using slug
-  const getEntities = async (slug, params = {}) => {
-    return await get(slug, params)
+  const createEntity = async (entity, data) => {
+    // data может быть FormData (если есть файл)
+    if (data instanceof FormData) {
+      return await axios
+        .post(`${apiUrl}entities/${entity}`, data, {
+          withCredentials: true,
+        })
+        .then((r) => r.data)
+    }
+
+    return await post(`entities/${entity}`, data)
   }
 
-  const getEntity = async (slug, id) => {
-    return await get(`${slug}/${id}`)
+  const updateEntity = async (entity, id, data) => {
+    return await put(`entities/${entity}/${id}`, data)
   }
 
-  const createEntity = async (slug, data) => {
-    return await post(slug, data)
+  const deleteEntityById = async (entity, id) => {
+    return await del(`entities/${entity}/${id}`)
   }
 
-  const updateEntity = async (slug, id, data) => {
-    return await patch(`${slug}/${id}`, data)
+  const getEntityById = async (entity, id) => {
+    return await get(`entities/${entity}/${id}`)
   }
 
-  const deleteEntityById = async (slug, id) => {
-    return await del(`${slug}/${id}`)
+  /* ================== SETTINGS ================== */
+
+  const loadSettings = async () => {
+    const data = await get('config', { action: 'load_settings' })
+    return data.settings || {}
+  }
+
+  const saveSettings = async (settings) => {
+    return await post('config?action=save_settings', settings)
   }
 
   return {
+    // base
     get,
     post,
-    patch,
+    put,
     del,
+
+    // upload
     upload,
-    getEntityList,
-    getEntityById,
-    saveEntity,
-    deleteEntity,
+
+    // config
+    listEntityConfigs,
     getEntityConfig,
-    saveEntityConfig,
+    createEntityConfig,
     updateEntityConfig,
     deleteEntityConfig,
-    listEntityConfigs,
+
+    // entities
     getEntities,
-    getEntity,
+    getEntityById,
     createEntity,
     updateEntity,
     deleteEntityById,
+
+    // settings
+    loadSettings,
+    saveSettings,
   }
 }

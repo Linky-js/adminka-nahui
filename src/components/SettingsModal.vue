@@ -32,7 +32,7 @@ function loadPagesFromStore() {
       }
 
       const fields = (arr || []).map((f) => ({
-        key: f.key || f.sourceKey || f.targetKey || "",
+        key: f.key || f.sourceKey || "",
         label: f.label || "",
         type: f.type || "input",
         sourceKey: f.sourceKey || f.key || "",
@@ -40,6 +40,7 @@ function loadPagesFromStore() {
           f.props && f.props.options
             ? JSON.stringify(f.props.options, null, 2)
             : "",
+        fields: f.fields ? JSON.parse(JSON.stringify(f.fields)) : [], // 👈 ВАЖНО
       }));
       pages.value = [{ key: props.entity, label, fields }];
     } else {
@@ -60,7 +61,7 @@ function loadPagesFromStore() {
       }
 
       const fields = (arr || []).map((f) => ({
-        key: f.key || f.sourceKey || f.targetKey || "",
+        key: f.key || f.sourceKey || "",
         label: f.label || "",
         type: f.type || "input",
         sourceKey: f.sourceKey || f.key || "",
@@ -68,6 +69,7 @@ function loadPagesFromStore() {
           f.props && f.props.options
             ? JSON.stringify(f.props.options, null, 2)
             : "",
+        fields: f.fields ? JSON.parse(JSON.stringify(f.fields)) : [], // 👈 ВАЖНО
       }));
       pages.value.push({ key: k, label, fields });
     }
@@ -89,6 +91,8 @@ function close() {
   emit("close");
 }
 
+
+
 function save() {
   try {
     const mapped = {};
@@ -105,6 +109,13 @@ function save() {
             sourceKey: f.sourceKey || f.key || "",
             targetKey: f.sourceKey || f.key || "",
           };
+          if (f.type === "repeater") {
+            obj.fields = (f.fields || []).map((rf) => ({
+              type: rf.type || "input",
+              key: rf.key,
+              label: rf.label,
+            }));
+          }
           if (f.type === "select" && f.optionsText) {
             try {
               obj.props = { options: JSON.parse(f.optionsText) };
@@ -158,6 +169,7 @@ function addField(pageIndex) {
     type: "input",
     sourceKey: "",
     optionsText: "",
+    fields: [], // 👈 для repeater
   });
 }
 
@@ -179,6 +191,7 @@ const getFieldTypeLabel = (type) => {
     file: "Файл",
     date: "Дата",
     coords: "Координаты",
+    repeater: "Повторитель",
   };
   return labels[type] || type;
 };
@@ -309,8 +322,43 @@ const getFieldTypeLabel = (type) => {
                         <option value="file">Файл</option>
                         <option value="date">Дата</option>
                         <option value="coords">Координаты</option>
+                        <option value="repeater">Повторитель</option>
                       </select>
                     </div>
+                    <!-- REPEATER SETTINGS -->
+                    <div v-if="f.type === 'repeater'" class="repeater-settings">
+                      <div class="divider small">Поля повторителя</div>
+
+                      <div v-for="(rf, rIndex) in f.fields" :key="rIndex" class="repeater-group">
+                        <div class="form-group compact">
+                          <label class="label-text">Название поля</label>
+                          <input v-model="rf.label" placeholder="Название поля" class="form-input" />
+                        </div>
+                        <div class="form-group compact">
+                          <label class="label-text">Ключ поля</label>
+                          <input v-model="rf.key" placeholder="Ключ" class="form-input" />
+                        </div>
+                        <div class="form-group compact">
+                          <label class="label-text">Тип поля</label>
+                          <select v-model="rf.type" class="form-select">
+                            <option value="input">Текстовое поле</option>
+                            <option value="textarea">Многострочный текст</option>
+                            <option value="editor">Текстовый редактор</option>
+                            <option value="select">Выпадающий список</option>
+                            <option value="images">Изображения</option>
+                            <option value="file">Файл</option>
+                            <option value="date">Дата</option>
+                          </select>
+                        </div>
+
+                        <button class="field-delete-btn" @click="f.fields.splice(rIndex, 1)">✕</button>
+                      </div>
+
+                      <button class="add-field-btn" @click="f.fields.push({ key: '', label: '', type: 'input' })">
+                        + Добавить поле
+                      </button>
+                    </div>
+
 
                     <label class="checkbox-field">
                       <input type="checkbox" v-model="f.required" />
@@ -379,6 +427,23 @@ const getFieldTypeLabel = (type) => {
   </div>
 </template>
 <style scoped>
+.repeater-group{
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  position: relative;
+}
+.repeater-group .field-delete-btn{
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  cursor: pointer;
+  color: #666;
+}
 .settings-overlay {
   position: fixed;
   inset: 0;
@@ -766,6 +831,11 @@ const getFieldTypeLabel = (type) => {
 .field-type-badge.coords {
   background: #ccfbf1;
   color: #0f766e;
+}
+
+.field-type-badge.repeater {
+  background: linear-gradient(-90deg, #63eed0 0%, #aeeee5 100%);
+  color: #000000;
 }
 
 .field-delete-btn {

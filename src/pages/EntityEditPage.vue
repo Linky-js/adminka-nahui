@@ -11,6 +11,6 @@ const id = route.params.id
 
 <template>
     <AdminLayout>
-        <UniversalAdminPage :entity="entity" :initialData="{ id: parseInt(id) }" />
+        <UniversalAdminPage  :initialData="{ id: parseInt(id) }" />
     </AdminLayout>
 </template>

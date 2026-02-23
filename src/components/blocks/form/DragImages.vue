@@ -1,8 +1,8 @@
 <script setup>
 import { ref, watch, defineProps, defineEmits } from 'vue'
-import vuedraggable from 'vuedraggable'
+import { VueDraggableNext as draggable } from 'vue-draggable-next'
 
-const apiDomain = '';
+const apiDomain = 'https://gyf.global/admin/api/public';
 
 const props = defineProps({
   modelValue: {
@@ -124,21 +124,10 @@ const dragLeave = () => (isDragActive.value = false)
     <div class="drop-zone" @dragover.prevent="dragOver" @drop="handleDrop" @dragenter="dragEnter" @dragleave="dragLeave"
       :class="{ 'drag-active': isDragActive }">
       <!-- Множественный режим -->
-      <vuedraggable v-if="multiple && images.length > 0" v-model="images" item-key="id" @start="drag = true"
-        @end="drag = false">
-        <template #item="{ element }">
-          <div class="image-item">
-            <img :src="element.dataurl || apiDomain + 'web/uploads/' + (element?.url?.img || element?.url)" alt="" />
-            <button @click="removeImage(element)" class="remove-btn">×</button>
-          </div>
-        </template>
-      </vuedraggable>
-
-      <div v-else-if="!multiple && images[0]" class="single-image">
-        <img :src="images[0]?.dataurl || apiDomain + 'web/uploads/' + images[0]?.url" alt="" />
-        <button @click="removeImage(images[0])" class="remove-btn">×</button>
+      <div v-for="img in images" class="single-image">
+        <img :src="img.dataurl ? apiDomain + img.dataurl : img.url" alt="" />
+        <button @click="removeImage(img)" class="remove-btn">×</button>
       </div>
-
       <p v-if="!images.length">Перетащите изображение сюда</p>
     </div>
     <a href="https://www.site.com" class="link">А здесь текст этой ссылки</a>
@@ -191,6 +180,9 @@ label {
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .drop-zone:hover {

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "626a36f1-a017-4b71-8013-b9b5ce4456b9",
+    "title": "World Of Web3 Lisbon / WOW Summit Lisbon",
+    "link": "1-3 November 2022",
+    "image": [
+      "/uploads/486fb61e-1e15-4d18-b451-f160cc1d4218.png"
+    ],
+    "location": "Lisbon, Portugal",
+    "venue": "SUD LISBOA",
+    "title1": "WHAT IS WOW SUMMIT LISBON?",
+    "description1": "WOW Summit Lisbon, a groundbreaking event in the Web3 space, exceeded all expectations as it gathered over 1500+ attendees, featuring 70+ prominent leaders, startups, and investors.",
+    "title2": "WOW Summit Review",
+    "description2": "Witness the remarkable WOW Summit in Lisbon, where Web3 leaders converged for an extraordinary gathering. 1500+ attendees, 70+ speakers, and 60+ partners all gathered to shape the future of blockchain, NFTs, and decentralized finance.",
+    "file": null,
+    "repeater": [
+      {
+        "_uid": "47343c86-6f97-4643-ae1f-d5ce95e161b9",
+        "head": "DAY ONE",
+        "descr": "On day 1 of the WOW Summit Lisbon, GuyWay gathered world-class speakers to showcase the startups and discuss data privacy, the blockchain and more. GuyWay handpicked some of the emerging discussion topics to create connections and spread innovations"
+      },
+      {
+        "_uid": "e03650fd-d2af-4bd0-ab2d-c6905dfb57a5",
+        "head": "DAY TWO",
+        "descr": "Day 2 of the WOW Summit continued enlightening by holding panel discussions with the Web3 specialists debating topics like metaverse and the future of Web3. Participants have got to enjoy networking on stunning terraces with a view of the Tejo River and a high-class dining experience"
+      }
+    ],
+    "whoistitle": "WOW CONFERENCE",
+    "descrwhois": "The Conference for the WOW Summit has gathered the biggest specialists, all of whom highlighted crucial for the Web3 industry topics including blockchain, NFTs, cybersecurity, and sustainability",
+    "gallery": [
+      "/uploads/afcc0050-d073-425f-8295-505cb59959f9.png",
+      "/uploads/e253abd5-9c05-426c-bbf2-6208a196d305.png",
+      "/uploads/501fa2b4-ae2d-4bbc-8ce5-37d850324e0b.jpg",
+      "/uploads/90543b33-ae72-435e-8abb-7cdd92a304f1.png",
+      "/uploads/976647a9-cde0-4639-b434-535412382110.png"
+    ]
+  }
+]
